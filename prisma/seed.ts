@@ -192,7 +192,7 @@ Le responsive design est un investissement qui améliore l'expérience utilisate
 
   console.log("📝 Insertion des articles...");
   for (const article of articles) {
-    await prisma.blog_articles.upsert({
+    await prisma.blogArticle.upsert({
       where: { slug: article.slug },
       update: article,
       create: article,

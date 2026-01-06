@@ -7,22 +7,22 @@ import { AnimatedSection } from "@/components/animations/AnimatedSection";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-export async function generateStaticParams() {
-  const articles = await prisma.blog_articles.findMany({
+import type { BlogArticle } from "@prisma/client";
+
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  return prisma.blogArticle.findMany({
     where: { published: true },
     select: { slug: true },
   });
-  return articles.map((a) => ({ slug: a.slug }));
 }
 
 export default async function BlogArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
-  const { slug } = await params;
-  const article = await prisma.blog_articles.findFirst({
-    where: { slug, published: true },
+  const article: BlogArticle | null = await prisma.blogArticle.findFirst({
+    where: { slug: params.slug, published: true },
   });
 
   if (!article) return notFound();
@@ -92,7 +92,7 @@ export default async function BlogArticlePage({
                 {article.title}
               </h2>
               <div className="space-y-6">
-                {article.content.split("\n").map((line, i) => {
+                {article.content.split("\n").map((line: string, i: number) => {
                   const p = line.trim();
                   if (!p) return <div key={i} className="h-2" />;
 

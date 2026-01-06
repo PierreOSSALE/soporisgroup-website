@@ -33,7 +33,7 @@ export default function PolitiqueConfidentialitePage() {
       </div>
 
       {/* Header */}
-      <div className="py-12 bg-background">
+      <div className="pt-4 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">
             Politique de Confidentialité
@@ -47,7 +47,7 @@ export default function PolitiqueConfidentialitePage() {
       </div>
 
       {/* Content */}
-      <section className="py-16 bg-background">
+      <section className="pb-16 pt-4 bg-background">
         <div className="container mx-auto px-4">
           <AnimatedSection className="max-w-4xl mx-auto">
             <div className="bg-card rounded-2xl p-8 lg:p-12 border border-border space-y-12">
@@ -176,8 +176,7 @@ export default function PolitiqueConfidentialitePage() {
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   Notre site utilise des cookies pour améliorer votre expérience
-                  de navigation. Vous pouvez à tout moment modifier vos
-                  préférences dans les paramètres de votre navigateur.
+                  de navigation.
                 </p>
               </section>
 

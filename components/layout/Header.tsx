@@ -7,8 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Route } from "next";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import logo from "@/public/img/logo-soporis.png";
 import Image from "next/image";
+
+// Import des deux logos
+import logoLight from "@/public/img/logo-soporis-light.png";
+import logoDark from "@/public/img/logo-soporis-dark.jpg";
+import { useTheme } from "@/components/ThemeProvider";
 
 const navItems = [
   { name: "À propos", href: "/a-propos" },
@@ -23,6 +27,13 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Éviter le flash de logo pendant l'hydratation
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +42,23 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Déterminer quel logo utiliser
+  const getLogoToUse = () => {
+    if (!mounted) return logoLight; // Logo par défaut pendant le SSR
+
+    if (theme === "system") {
+      // Vérifier la préférence système
+      const systemPrefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      return systemPrefersDark ? logoDark : logoLight;
+    }
+
+    return theme === "dark" ? logoDark : logoLight;
+  };
+
+  const currentLogo = getLogoToUse();
 
   return (
     <header className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl">
@@ -42,12 +70,20 @@ export default function Header() {
         } ${isMenuOpen ? "rounded-t-2xl" : "rounded-full"}`}
       >
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
+            {/* Logo pour le thème clair */}
             <Image
-              src={logo}
+              src={logoLight}
               alt="Soporis Group"
-              className="h-9 w-auto object-contain"
+              className="h-9 w-auto object-contain block dark:hidden"
+              priority
+            />
+
+            {/* Logo pour le thème sombre */}
+            <Image
+              src={logoDark}
+              alt="Soporis Group"
+              className="h-9 w-auto object-contain hidden dark:block"
               priority
             />
           </Link>
@@ -77,12 +113,12 @@ export default function Header() {
 
           {/* CTA et Menu Mobile */}
           <div className="flex items-center gap-2">
-            {/* <ThemeToggle /> */}
+            <ThemeToggle className="hidden lg:flex" />
 
             {!isMenuOpen && (
               <Link href={"/rendez-vous" as Route}>
                 <Button
-                  variant="nav"
+                  variant="default"
                   size="default"
                   className="rounded-full cursor-pointer animate-in fade-in duration-300"
                 >
@@ -124,6 +160,7 @@ export default function Header() {
               {item.name}
             </Link>
           ))}
+          <ThemeToggle className="flex lg:hidden absolute top-2 right-6" />
 
           <div className="pt-4 px-2">
             <Link
@@ -131,7 +168,7 @@ export default function Header() {
               onClick={() => setIsMenuOpen(false)}
             >
               <Button
-                variant="nav"
+                variant="default"
                 className="w-full h-14 text-base rounded-full shadow-button cursor-pointer"
               >
                 Rendez-vous

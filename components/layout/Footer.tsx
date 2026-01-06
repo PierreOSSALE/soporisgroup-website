@@ -1,7 +1,7 @@
 "use client";
 
 import { Facebook, Instagram, Linkedin, Mail } from "lucide-react";
-import logo from "@/public/img/logo-soporis.png";
+import logo from "@/public/img/logo-soporis-light.png";
 import Link from "next/link";
 import Image from "next/image";
 import { Route } from "next";
@@ -89,7 +89,7 @@ export function Footer() {
 
           {/* Navigation */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-primary mb-6">
+            <h4 className="font-display text-lg font-semibold text-soporis-navy mb-6">
               Navigation
             </h4>
             <ul className="space-y-3">
@@ -108,7 +108,7 @@ export function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-primary mb-6">
+            <h4 className="font-display text-lg font-semibold text-soporis-navy mb-6">
               Nos Services
             </h4>
             <ul className="space-y-3">
@@ -127,7 +127,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-primary mb-6">
+            <h4 className="font-display text-lg font-semibold text-soporis-navy mb-6">
               Informations
             </h4>
             <ul className="space-y-3">
@@ -159,14 +159,16 @@ export function Footer() {
           <div className="flex flex-col items-center gap-4">
             <p className="mx-auto text-sm text-muted-foreground">
               © {new Date().getFullYear()}{" "}
-              <span className="font-semibold text-primary">Soporis Group</span>.
-              Tous droits réservés.
+              <span className="font-semibold text-soporis-navy">
+                Soporis Group
+              </span>
+              . Tous droits réservés.
             </p>
             <p className="text-[14px] text-muted-foreground ">
               Conçu par{" "}
               <a
                 href="https://www.soporisgroup.com"
-                className="text-primary hover:text-soporis-gold-light transition-colors"
+                className="text-soporis-navy hover:text-soporis-gold-light transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >

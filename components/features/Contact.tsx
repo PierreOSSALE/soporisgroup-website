@@ -28,7 +28,7 @@ const contactMethods = [
     title: "WhatsApp",
     description: "Discutons en direct",
     action: "Démarrer la conversation",
-    href: "https://wa.me/21626315088", // Numéro corrigé selon ton bouton précédent
+    href: "https://wa.me/+21626315088", // Numéro corrigé selon ton bouton précédent
     type: "external",
   },
   {
@@ -84,8 +84,6 @@ export function Contact({ className = "" }: ContactProps) {
             <StaggerContainer className="space-y-4" staggerDelay={0.1}>
               {contactMethods.map((method) => {
                 // LOGIQUE DE LIEN :
-                // - Si externe (WhatsApp) : on ouvre un nouvel onglet.
-                // - Si email ou interne : on reste sur la page (pour laisser l'app se lancer).
                 const isExternal = method.type === "external";
                 const target = isExternal ? "_blank" : undefined;
                 const rel = isExternal ? "noopener noreferrer" : undefined;

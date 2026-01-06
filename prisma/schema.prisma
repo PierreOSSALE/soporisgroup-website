@@ -10,18 +10,20 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model blog_articles {
+model BlogArticle {
   id         String   @id @default(uuid())
   title      String
   slug       String   @unique
   excerpt    String
-  content     String   @db.Text // @db.Text pour accepter de longs articles
+  content    String   @db.Text
   image_url  String?
   category   String
   read_time  String   @default("5 min")
   published  Boolean  @default(false)
   created_at DateTime @default(now()) @db.Timestamptz
-  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  @@map("blog_articles") // 👈 garde la table SQL existante
 }
 
 

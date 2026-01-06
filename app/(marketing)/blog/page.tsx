@@ -10,18 +10,11 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Route } from "next";
-
-// On récupère les données directement sur le serveur
-async function getArticles() {
-  const articles = await prisma.blog_articles.findMany({
-    where: { published: true },
-    orderBy: { created_at: "desc" },
-  });
-  return articles;
-}
+import type { BlogArticle } from "@prisma/client";
+import { getPublishedArticles } from "@/lib/actions/blog.actions";
 
 export default async function BlogPage() {
-  const articles = await getArticles();
+  const articles: BlogArticle[] = await getPublishedArticles();
 
   return (
     <>
@@ -63,7 +56,7 @@ export default async function BlogPage() {
         <div className="container mx-auto px-4">
           {articles.length > 0 ? (
             <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => {
+              {articles.map((article: BlogArticle) => {
                 const formattedDate = format(
                   new Date(article.created_at),
                   "d MMM yyyy",

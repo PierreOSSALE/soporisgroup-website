@@ -58,7 +58,7 @@ export function FAQ() {
     <section className="py-24 bg-soporis-gray w-full lg:px-30">
       <div className="container mx-auto px-4">
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-soporis-navy mb-4">
             Questions fréquentes
           </h2>
           <div className="w-16 h-1 bg-soporis-gold mx-auto mb-6" />

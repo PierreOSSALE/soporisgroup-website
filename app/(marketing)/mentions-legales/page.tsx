@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Home, ChevronRight } from "lucide-react";
 import { AnimatedSection } from "@/components/animations/AnimatedSection";
+import { Route } from "next";
 
 export const metadata: Metadata = {
   title: "Mentions Légales | Soporis Group",
   description:
     "Informations légales, hébergement et conditions d'utilisation du site de Soporis Group.",
-  robots: "noindex, follow", // Souvent recommandé pour les pages juridiques
+  robots: "noindex, follow",
 };
 
 export default function MentionsLegalesPage() {
@@ -31,7 +32,7 @@ export default function MentionsLegalesPage() {
       </div>
 
       {/* Header */}
-      <div className="py-12 bg-background">
+      <div className="pt-4 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">
             Mentions Légales
@@ -41,7 +42,7 @@ export default function MentionsLegalesPage() {
       </div>
 
       {/* Content */}
-      <section className="py-16 bg-background">
+      <section className="pb-16 pt-4 bg-background">
         <div className="container mx-auto px-4">
           <AnimatedSection className="max-w-4xl mx-auto">
             <div className="bg-card rounded-2xl p-8 lg:p-12 border border-border space-y-8">
@@ -58,26 +59,31 @@ export default function MentionsLegalesPage() {
                     <strong>Raison sociale :</strong> Soporis Group
                   </li>
                   <li>
-                    <strong>Forme juridique :</strong> [À compléter]
+                    <strong>Forme juridique :</strong> Entreprise Individuelle
                   </li>
                   <li>
-                    <strong>Capital social :</strong> [À compléter]
+                    <strong>Capital social :</strong> Non applicable (Entreprise
+                    Individuelle)
+                  </li>
+                  {/* <li>
+                    <strong>Siège social :</strong> Adresse à compléter
                   </li>
                   <li>
-                    <strong>Siège social :</strong> [Adresse à compléter]
+                    <strong>SIRET :</strong> À compléter
+                  </li> */}
+                  <li>
+                    <strong>RCS :</strong> Non applicable pour cette forme
+                    juridique
+                  </li>
+                  {/* <li>
+                    <strong>N° TVA Intracommunautaire :</strong> FRXXXXXXXXXX (À
+                    compléter)
+                  </li> */}
+                  <li>
+                    <strong>Directeur de publication :</strong> Simon Ossale
                   </li>
                   <li>
-                    <strong>SIRET :</strong> [À compléter]
-                  </li>
-                  <li>
-                    <strong>RCS :</strong> [À compléter]
-                  </li>
-                  <li>
-                    <strong>N° TVA Intracommunautaire :</strong> [À compléter]
-                  </li>
-                  <li>
-                    <strong>Directeur de publication :</strong> [Nom à
-                    compléter]
+                    <strong>Contact :</strong> contact@soporisgroup.com
                   </li>
                 </ul>
               </section>
@@ -92,22 +98,25 @@ export default function MentionsLegalesPage() {
                 </p>
                 <ul className="text-muted-foreground mt-4 space-y-2 list-none">
                   <li>
-                    <strong>Hébergeur :</strong> Vercel Inc.
+                    <strong>Hébergeur :</strong> LWS (Ligne Web Services)
                   </li>
                   <li>
-                    <strong>Adresse :</strong> 340 S Lemon Ave #4133, Walnut, CA
-                    91789, USA
+                    <strong>Adresse :</strong> Adresse de LWS - France
                   </li>
                   <li>
                     <strong>Site web :</strong>{" "}
                     <a
-                      href="https://vercel.com"
+                      href="https://www.lws.fr"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-soporis-gold underline underline-offset-4"
                     >
-                      vercel.com
+                      lws.fr
                     </a>
+                  </li>
+                  <li>
+                    <strong>Registrar :</strong> LWS (acrédité par l'AFNIC,
+                    ICANN, Verisign, etc.)
                   </li>
                 </ul>
               </section>
@@ -132,10 +141,61 @@ export default function MentionsLegalesPage() {
                 </p>
               </section>
 
-              {/* 4. Limitation de responsabilité */}
+              {/* 4. Protection des données personnelles */}
               <section>
                 <h2 className="font-display text-2xl font-bold text-primary mb-4">
-                  4. Limitation de responsabilité
+                  4. Protection des données personnelles
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Conformément au Règlement Général sur la Protection des
+                  Données (RGPD) et à la loi Informatique et Libertés, vous
+                  disposez d&apos;un droit d&apos;accès, de rectification, de
+                  suppression et d&apos;opposition aux données vous concernant.
+                  Pour exercer ces droits, veuillez nous contacter à
+                  l&apos;adresse email suivante :
+                  <Link
+                    href="mailto:contact@soporisgroup.com"
+                    className="ml-1 hover:text-soporis-gold transition-colors"
+                  >
+                    contact@soporisgroup.com
+                  </Link>
+                </p>
+                <p className="text-muted-foreground mt-4 leading-relaxed">
+                  Les données collectées via notre site sont exclusivement
+                  destinées à Soporis Group et ne seront en aucun cas vendues ou
+                  cédées à des tiers sans votre consentement explicite.
+                </p>
+              </section>
+
+              {/* 5. Cookies */}
+              <section>
+                <h2 className="font-display text-2xl font-bold text-primary mb-4">
+                  5. Cookies
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Notre site utilise des cookies pour améliorer
+                  l&apos;expérience utilisateur. Les cookies sont de petits
+                  fichiers texte stockés sur votre appareil qui nous aident à
+                  analyser l&apos;utilisation du site et à personnaliser le
+                  contenu.
+                </p>
+                <p className="text-muted-foreground mt-4 leading-relaxed">
+                  Vous pouvez contrôler et/ou supprimer les cookies comme vous
+                  le souhaitez. Pour plus d&apos;informations, consultez notre{" "}
+                  <Link
+                    href={"/politique-cookies" as Route}
+                    className="hover:text-soporis-gold underline underline-offset-4"
+                  >
+                    Politique de Cookies
+                  </Link>
+                  .
+                </p>
+              </section>
+
+              {/* 6. Limitation de responsabilité */}
+              <section>
+                <h2 className="font-display text-2xl font-bold text-primary mb-4">
+                  6. Limitation de responsabilité
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   Soporis Group s&apos;efforce de fournir sur son site des
@@ -145,12 +205,16 @@ export default function MentionsLegalesPage() {
                   son fait ou du fait des tiers partenaires qui lui fournissent
                   ces informations.
                 </p>
+                <p className="text-muted-foreground mt-4 leading-relaxed">
+                  L&apos;utilisateur du site reconnaît utiliser les informations
+                  sous sa responsabilité exclusive.
+                </p>
               </section>
 
-              {/* 5. Liens hypertextes */}
+              {/* 7. Liens hypertextes */}
               <section>
                 <h2 className="font-display text-2xl font-bold text-primary mb-4">
-                  5. Liens hypertextes
+                  7. Liens hypertextes
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
                   Le site peut contenir des liens hypertextes vers d&apos;autres
@@ -158,12 +222,31 @@ export default function MentionsLegalesPage() {
                   contrôler le contenu de ces sites tiers et n&apos;assume
                   aucune responsabilité quant à leur contenu.
                 </p>
+                <p className="text-muted-foreground mt-4 leading-relaxed">
+                  La création de liens vers notre site est autorisée sans
+                  autorisation préalable, sous réserve de ne pas utiliser de
+                  technique de &quot;framing&quot; ou de &quot;deep
+                  linking&quot; qui pourrait créer une confusion sur la
+                  provenance du contenu.
+                </p>
               </section>
 
-              {/* 6. Contact */}
+              {/* 8. Droit applicable */}
               <section>
                 <h2 className="font-display text-2xl font-bold text-primary mb-4">
-                  6. Contact
+                  8. Droit applicable
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Les présentes mentions légales sont régies par le droit
+                  français. En cas de litige, et à défaut d&apos;accord amiable,
+                  les tribunaux français seront seuls compétents.
+                </p>
+              </section>
+
+              {/* 9. Contact */}
+              <section>
+                <h2 className="font-display text-2xl font-bold text-primary mb-4">
+                  9. Contact
                 </h2>
                 <p className="text-muted-foreground">
                   Pour toute question relative aux présentes mentions légales,
@@ -188,12 +271,30 @@ export default function MentionsLegalesPage() {
                       support@soporisgroup.com
                     </Link>
                   </li>
+                  <li>
+                    <strong>Téléphone :</strong>{" "}
+                    <Link
+                      href="tel:+21626315088"
+                      className="hover:text-soporis-gold transition-colors"
+                    >
+                      +216 26 315 088
+                    </Link>
+                  </li>
                 </ul>
               </section>
 
-              <p className="text-sm text-muted-foreground pt-4 border-t border-border">
-                Dernière mise à jour : Janvier 2026
-              </p>
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground">
+                  Dernière mise à jour : Janvier 2026
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  <em>
+                    Note : Ces mentions légales sont fournies à titre indicatif.
+                    Pour une conformité juridique complète, il est recommandé de
+                    consulter un professionnel du droit.
+                  </em>
+                </p>
+              </div>
             </div>
           </AnimatedSection>
         </div>
