@@ -74,7 +74,7 @@ export function Packs({
 
   return (
     <section className={`py-24 w-full lg:px-30 ${className}`}>
-      <div className={`container mx-auto px-4  ${margin || ""}`}>
+      <div className={`container mx-auto px-4 ${margin || ""}`}>
         {/* Header */}
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-16 ">
           <h2
@@ -93,13 +93,13 @@ export function Packs({
         </AnimatedSection>
 
         {/* Packs Grid */}
-        <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-8 max-w-6xl mx-auto overflow-x-hidden">
           {packs.map((pack) => (
             <StaggerItem key={pack.name}>
               <div
-                className={`relative rounded-2xl p-8 transition-all duration-300 h-full flex flex-col ${
+                className={`relative p-8 transition-all  rounded-2xl duration-300 h-full flex flex-col ${
                   pack.featured
-                    ? "bg-primary text-primary-foreground shadow-card scale-105"
+                    ? "bg-primary text-primary-foreground shadow-card md:scale-105"
                     : "bg-card border border-border hover:shadow-card"
                 }`}
               >

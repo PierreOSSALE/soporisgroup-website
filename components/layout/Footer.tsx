@@ -41,7 +41,9 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-soporis-gray ">
+    <footer className="bg-background ">
+      {" "}
+      <Separator className="" />
       <div className="container mx-auto px-4 pt-12 pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 max-w-7xl mx-auto">
           {/* Logo & Contact Info */}

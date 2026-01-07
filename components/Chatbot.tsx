@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, User } from "lucide-react";
 import { BsWhatsapp } from "react-icons/bs"; // On réutilise l'icône WhatsApp
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
 
 // --- CONSTANTES WHATSAPP ---
 const WHATSAPP_NUMBER = "+21626315088";
@@ -84,6 +85,7 @@ function getBotResponse(message: string): {
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const chatRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -127,12 +129,30 @@ export function Chatbot() {
     window.open(url, "_blank");
   };
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        isOpen &&
+        chatRef.current &&
+        !chatRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
   return (
     <>
       {/* Chat Button (Identique à avant) */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-15 right-10 z-50 flex items-center justify-center rounded-full shadow-2xl transition-all hover:ring-4 hover:ring-primary/20 ${
+        className={`fixed bottom-2 md:bottom-15 right-5 md:right-10 z-50 flex items-center justify-center rounded-full shadow-2xl transition-all hover:ring-4 hover:ring-primary/20 ${
           isOpen ? "hidden" : ""
         }`}
         initial={{ scale: 0, opacity: 0 }}
@@ -142,7 +162,7 @@ export function Chatbot() {
         whileTap={{ scale: 0.95 }}
         aria-label="Ouvrir le chat"
       >
-        <Avatar className="w-16 h-16 border-2 border-primary">
+        <Avatar className="w-12 h-12 border-2 border-primary cursor-pointer">
           <AvatarImage
             src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
             alt="Support Avatar"
@@ -160,16 +180,17 @@ export function Chatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={chatRef}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-50 w-90 max-w-[calc(100vw-3rem)] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="fixed bg-card bottom-6 right-6 z-100 w-90 max-w-[calc(100vw-3rem)] border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="bg-primary p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                <div className="relative w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                   <Avatar className="w-10 h-10 border-2 border-primary">
                     <AvatarImage
                       src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
@@ -178,8 +199,9 @@ export function Chatbot() {
                     />
                     <AvatarFallback className="bg-secondary">
                       <User className="w-5 h-5 text-primary" />
-                    </AvatarFallback>
+                    </AvatarFallback>{" "}
                   </Avatar>
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-10" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-primary-foreground">
@@ -197,75 +219,86 @@ export function Chatbot() {
             </div>
 
             {/* Messages */}
-            <div className="h-80 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex gap-2 ${
-                    message.isBot ? "" : "flex-row-reverse"
-                  }`}
-                >
-                  {/* Avatar du message */}
-                  <div
-                    className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center ${
-                      message.isBot ? "bg-primary/10" : "bg-soporis-gold/10"
+            <div className="relative h-80 overflow-hidden">
+              {/* Background FIXE */}
+              <div className="absolute inset-0 z-0 pointer-events-none">
+                <Image
+                  src="/img/hero-bg.jpg"
+                  alt="Chat background"
+                  fill
+                  priority
+                  className="object-cover"
+                />
+                {/* Overlay pour lisibilité */}
+                {/* <div className="absolute inset-0 bg-card/80 backdrop-blur-sm" /> */}
+              </div>
+
+              {/* Scrollable messages */}
+              <div className="relative z-10 h-full overflow-y-auto p-4 py-6 space-y-4">
+                {messages.map((message: Message) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex gap-2 ${
+                      message.isBot ? "" : "flex-row-reverse"
                     }`}
                   >
-                    {message.isBot ? (
-                      <Avatar className="w-8 h-8 border-2 border-primary">
-                        <AvatarImage
-                          src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
-                          alt="Support Avatar"
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="bg-secondary">
-                          <User className="w-8 h-8 text-primary" />
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <User className="w-4 h-4 text-soporis-gold" />
-                    )}
-                  </div>
-
-                  {/* Contenu du message */}
-                  <div className={`flex flex-col gap-2 max-w-[80%]`}>
-                    <div
-                      className={`p-3 rounded-2xl text-sm ${
-                        message.isBot
-                          ? "bg-secondary text-foreground rounded-tl-none"
-                          : "bg-primary text-primary-foreground rounded-tr-none"
-                      }`}
-                    >
-                      {message.text}
+                    {/* Avatar */}
+                    <div className="w-8 h-8 shrink-0 flex items-center justify-center">
+                      {message.isBot ? (
+                        <Avatar className="w-8 h-8 border-2 border-primary">
+                          <AvatarImage
+                            src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
+                            alt="Support Avatar"
+                          />
+                          <AvatarFallback>
+                            <User className="w-4 h-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <User className="w-4 h-4 text-soporis-gold" />
+                      )}
                     </div>
 
-                    {/* --- RENDU CONDITIONNEL DU BOUTON WHATSAPP --- */}
-                    {message.isBot && message.action === "whatsapp" && (
-                      <motion.button
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        onClick={openWhatsApp}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white text-sm font-medium rounded-xl hover:bg-[#20BD5A] transition-colors w-fit shadow-md"
+                    {/* Message bubble */}
+                    <div className="flex flex-col gap-2 max-w-[80%]">
+                      <div
+                        className={`p-3 rounded-2xl text-sm shadow ${
+                          message.isBot
+                            ? "bg-secondary text-foreground rounded-tl-none"
+                            : "bg-primary text-primary-foreground rounded-tr-none"
+                        }`}
                       >
-                        <BsWhatsapp className="w-4 h-4" />
-                        Discuter maintenant
-                      </motion.button>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                        {message.text}
+                      </div>
+
+                      {/* WhatsApp CTA */}
+                      {message.isBot && message.action === "whatsapp" && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={openWhatsApp}
+                          className="flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white text-sm rounded-xl shadow w-fit"
+                        >
+                          <BsWhatsapp className="w-4 h-4" />
+                          Discuter maintenant
+                        </motion.button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
 
             {/* Quick Replies et Input restent identiques... */}
-            <div className="px-4 pb-2">
+            <div className="p-2 bg-soporis-gray-dark">
               <div className="flex flex-wrap gap-2">
                 {quickReplies.map((reply) => (
                   <button
                     key={reply}
                     onClick={() => handleSend(reply)}
-                    className="text-xs px-3 py-1.5 bg-secondary rounded-full text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                    className="text-xs px-3 py-1.5 bg-background rounded-full text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
                   >
                     {reply}
                   </button>
@@ -273,7 +306,7 @@ export function Chatbot() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border bg-primary">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -289,12 +322,12 @@ export function Chatbot() {
                   className="flex-1 px-4 py-2 bg-secondary rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <Button
+                  variant="gold"
                   type="submit"
                   size="icon"
-                  className="rounded-full w-10 h-10"
-                  disabled={!inputValue.trim()}
+                  className="rounded-full w-10 h-10 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 " />
                 </Button>
               </form>
             </div>

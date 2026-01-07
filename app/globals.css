@@ -240,7 +240,7 @@
   }
 
   .shadow-soft {
-    box-shadow: 0 4px 20px -4px hsl(220 45% 18% / 0.08);
+    box-shadow: 0 4px 20px -4px hsla(220, 46%, 18%, 0.027);
   }
 
   .shadow-card {
@@ -369,12 +369,12 @@
 
 /* ===== STYLES SPÉCIFIQUES ===== */
 
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-}
+} */
 
 .logo {
   height: 6em;

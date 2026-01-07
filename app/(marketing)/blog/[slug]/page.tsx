@@ -1,5 +1,4 @@
 //app/(marketing)/blog/[slug]/page.tsx
-
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";

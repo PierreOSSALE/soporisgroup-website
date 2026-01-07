@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const headerRef = useRef<HTMLDivElement | null>(null);
 
   // Éviter le flash de logo pendant l'hydratation
   useEffect(() => {
@@ -42,6 +44,24 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        isMenuOpen &&
+        headerRef.current &&
+        !headerRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   // Déterminer quel logo utiliser
   const getLogoToUse = () => {
@@ -61,7 +81,10 @@ export default function Header() {
   const currentLogo = getLogoToUse();
 
   return (
-    <header className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl">
+    <header
+      ref={headerRef}
+      className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl"
+    >
       <div
         className={`relative px-4 sm:px-6 lg:px-8  ${
           scrolled || isMenuOpen

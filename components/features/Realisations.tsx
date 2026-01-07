@@ -75,7 +75,7 @@ export function Realisations({ className = "" }: RealisationsProps) {
               >
                 <Link
                   href={`/realisations/${project.slug}` as Route}
-                  className="group block bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card transition-all duration-300"
+                  className="group block bg-card rounded-2xl overflow-hidden border border-border shadow-soft hover:shadow-card transition-all duration-300"
                 >
                   <div className="relative aspect-4/3 overflow-hidden">
                     <Image
@@ -89,7 +89,7 @@ export function Realisations({ className = "" }: RealisationsProps) {
                       <ExternalLink className="h-8 w-8 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                   </div>
-                  <div className="p-5">
+                  <div className="p-5 border">
                     <span className="text-xs font-medium text-soporis-gold uppercase tracking-wider">
                       {project.category}
                     </span>
