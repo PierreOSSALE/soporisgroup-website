@@ -1,6 +1,5 @@
-// app/blog/page.tsx
+//app/(marketing)/blog/page.tsx
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { Home, ChevronRight, Calendar, Clock } from "lucide-react";
 import {
   AnimatedSection,
@@ -19,7 +18,7 @@ export default async function BlogPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-40 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -30,7 +29,7 @@ export default async function BlogPage() {
               Accueil
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-primary font-medium">Blog</span>
+            <span className="text-soporis-navy font-medium">Blog</span>
           </nav>
         </div>
       </div>

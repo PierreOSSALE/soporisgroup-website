@@ -1,5 +1,6 @@
+--prisma/xxx_init_migration/migration.sql
 -- CreateTable
-CREATE TABLE "public"."blog_articles" (
+CREATE TABLE "public"."BlogArticle" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -10,9 +11,9 @@ CREATE TABLE "public"."blog_articles" (
     "read_time" TEXT NOT NULL DEFAULT '5 min',
     "published" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "blog_articles_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "BlogArticle_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -33,4 +34,4 @@ CREATE TABLE "public"."appointments" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "blog_articles_slug_key" ON "public"."blog_articles"("slug");
+CREATE UNIQUE INDEX "BlogArticle_slug_key" ON "public"."BlogArticle"("slug");

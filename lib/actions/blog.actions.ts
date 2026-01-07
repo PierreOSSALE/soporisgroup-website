@@ -1,3 +1,4 @@
+//lib/schema/blog.schema.ts
 import { prisma } from "@/lib/prisma";
 import type { BlogArticle } from "@prisma/client";
 

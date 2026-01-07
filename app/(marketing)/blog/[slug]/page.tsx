@@ -1,3 +1,5 @@
+//app/(marketing)/blog/[slug]/page.tsx
+
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -30,7 +32,7 @@ export default async function BlogArticlePage({
   return (
     <div className="min-h-screen bg-white">
       {/* Breadcrumb */}
-      <div className="pt-32 pb-6">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4 max-w-5xl">
           <nav className="flex items-center gap-2 text-sm text-slate-500">
             <Link

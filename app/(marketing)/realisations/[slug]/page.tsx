@@ -54,7 +54,7 @@ export default function RealisationDetail() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-40 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -72,7 +72,9 @@ export default function RealisationDetail() {
               Réalisations
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-primary font-medium">{project.title}</span>
+            <span className="text-soporis-navy font-medium">
+              {project.title}
+            </span>
           </nav>
         </div>
       </div>
@@ -144,7 +146,7 @@ export default function RealisationDetail() {
             <div className="lg:col-span-2 space-y-12">
               {/* Description */}
               <AnimatedSection>
-                <h2 className="font-display text-2xl font-bold text-primary mb-4">
+                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-4">
                   À propos du projet
                 </h2>
                 <p className="text-muted-foreground text-lg leading-relaxed">
@@ -154,7 +156,7 @@ export default function RealisationDetail() {
 
               {/* Challenges */}
               <AnimatedSection delay={0.1}>
-                <h2 className="font-display text-2xl font-bold text-primary mb-6">
+                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
                   Les défis
                 </h2>
                 <ul className="space-y-3">
@@ -171,7 +173,7 @@ export default function RealisationDetail() {
 
               {/* Solutions */}
               <AnimatedSection delay={0.2}>
-                <h2 className="font-display text-2xl font-bold text-primary mb-6">
+                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
                   Nos solutions
                 </h2>
                 <ul className="space-y-3">
@@ -186,7 +188,7 @@ export default function RealisationDetail() {
 
               {/* Screenshots */}
               <AnimatedSection delay={0.3}>
-                <h2 className="font-display text-2xl font-bold text-primary mb-6">
+                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
                   Captures d'écran
                 </h2>
                 <div className="space-y-6">
@@ -215,7 +217,7 @@ export default function RealisationDetail() {
               {/* Client Info */}
               <AnimatedSection delay={0.2}>
                 <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h3 className="font-display text-lg font-semibold text-primary mb-4">
+                  <h3 className="font-display text-lg font-semibold text-soporis-white  mb-4">
                     Informations
                   </h3>
                   <dl className="space-y-4">
@@ -255,7 +257,7 @@ export default function RealisationDetail() {
               {/* Technologies */}
               <AnimatedSection delay={0.3}>
                 <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h3 className="font-display text-lg font-semibold text-primary mb-4">
+                  <h3 className="font-display text-lg font-semibold text-soporis-white  mb-4">
                     Technologies
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -288,7 +290,7 @@ export default function RealisationDetail() {
               {/* CTA */}
               <AnimatedSection delay={0.5}>
                 <div className="bg-card rounded-2xl p-6 border border-border text-center">
-                  <h3 className="font-display text-lg font-semibold text-primary mb-2">
+                  <h3 className="font-display text-lg font-semibold text-soporis-white  mb-2">
                     Un projet similaire ?
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">

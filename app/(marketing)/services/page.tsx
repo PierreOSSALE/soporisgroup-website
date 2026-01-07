@@ -22,7 +22,7 @@ export default function ServicesPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-38 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -33,13 +33,13 @@ export default function ServicesPage() {
               Accueil
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-primary font-medium">Nos services</span>
+            <span className="text-soporis-navy font-medium">Nos services</span>
           </nav>
         </div>
       </div>
 
       {/* Services Section */}
-      <Services className="-mt-18 bg-background" />
+      <Services className="bg-background" margin="-mt-18" />
     </>
   );
 }

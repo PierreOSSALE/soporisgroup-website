@@ -41,7 +41,7 @@ export default function AboutPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-40 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -52,7 +52,7 @@ export default function AboutPage() {
               Accueil
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-primary font-medium">À propos</span>
+            <span className="text-soporis-navy font-medium">À propos</span>
           </nav>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function AboutPage() {
       <section className="py-16 bg-soporis-gray">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-3xl font-bold text-primary mb-6">
+            <h2 className="font-display text-3xl font-bold text-soporis-navy mb-6">
               Notre histoire
             </h2>
             <p className="text-muted-foreground text-lg mb-6">

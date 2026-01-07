@@ -9,6 +9,8 @@ import { Route } from "next";
 
 type ServicesProps = {
   className?: string;
+  titleColor?: string;
+  margin?: string;
 };
 
 const services = [
@@ -53,13 +55,22 @@ const services = [
   },
 ];
 
-export function Services({ className = "" }: ServicesProps) {
+export function Services({
+  className = "",
+  titleColor = "",
+  margin = "",
+}: ServicesProps) {
   return (
     <section className={`py-24  w-full lg:px-30 ${className}`}>
-      <div className="container mx-auto px-4">
+      <div className={`container mx-auto px-4  ${margin || ""}`}>
         {/* Header */}
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">
+          <h2
+            className={`font-display text-3xl sm:text-4xl font-bold mb-4 ${
+              titleColor || "text-foreground"
+            }`}
+          >
+            {" "}
             Nos services
           </h2>
           <div className="w-16 h-1 bg-soporis-gold mx-auto mb-6" />

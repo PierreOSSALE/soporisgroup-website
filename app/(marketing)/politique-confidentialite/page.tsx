@@ -14,7 +14,7 @@ export default function PolitiqueConfidentialitePage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-40 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link

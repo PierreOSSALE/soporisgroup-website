@@ -11,6 +11,8 @@ import { FaWhatsapp } from "react-icons/fa";
 
 type PacksProps = {
   className?: string;
+  titleColor?: string;
+  margin?: string;
 };
 
 const packs = [
@@ -63,15 +65,24 @@ const packs = [
   },
 ];
 
-export function Packs({ className = "" }: PacksProps) {
+export function Packs({
+  className = "",
+  titleColor = "",
+  margin = "",
+}: PacksProps) {
   const whatsappNumber = "+21626315088";
 
   return (
     <section className={`py-24 w-full lg:px-30 ${className}`}>
-      <div className="container mx-auto px-4">
+      <div className={`container mx-auto px-4  ${margin || ""}`}>
         {/* Header */}
-        <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">
+        <AnimatedSection className="text-center max-w-2xl mx-auto mb-16 ">
+          <h2
+            className={`font-display text-3xl sm:text-4xl font-bold mb-4 ${
+              titleColor || "text-foreground"
+            }`}
+          >
+            {" "}
             Nos packs & offres
           </h2>
           <div className="w-16 h-1 bg-soporis-gold mx-auto mb-6" />
@@ -203,7 +214,7 @@ export function Packs({ className = "" }: PacksProps) {
                     <Button
                       variant="outline"
                       size="lg"
-                      className={`w-full rounded-full cursor-pointer ${
+                      className={`w-full rounded-full cursor-pointerte text-primary bg-soporis-gold${
                         pack.featured ? "hover:text-soporis-gold" : ""
                       }`}
                     >

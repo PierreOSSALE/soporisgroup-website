@@ -18,9 +18,9 @@ export function HomeClient() {
       <AnimatedSection direction="up">
         <About />
       </AnimatedSection>
-      <Services className="bg-soporis-gray" />
+      <Services className="bg-soporis-gray" titleColor="text-soporis-navy" />
       <Realisations />
-      <Packs className="bg-soporis-gray" />
+      <Packs className="bg-soporis-gray" titleColor="text-soporis-navy" />
       <Testimonials />
       <FAQ />
       <Contact className="bg-background" />

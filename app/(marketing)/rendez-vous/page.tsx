@@ -1,4 +1,4 @@
-"use client"; // Indispensable pour useEffect et Script
+"use client";
 
 import {
   Home,
@@ -9,8 +9,8 @@ import {
   Phone,
   Users,
 } from "lucide-react";
-import Link from "next/link"; // Changement ici
-import Script from "next/script"; // Ajout pour l'optimisation
+import Link from "next/link";
+import { FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import {
   AnimatedSection,
@@ -59,9 +59,9 @@ const RendezVousPage = () => {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-28 pb-8 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+          <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
               href="/"
               className="flex items-center gap-1 hover:text-primary transition-colors"
@@ -70,7 +70,7 @@ const RendezVousPage = () => {
               Accueil
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-primary font-medium">Rendez-vous</span>
+            <span className="text-soporis-navy font-medium">Rendez-vous</span>
           </nav>
         </div>
       </div>
@@ -95,7 +95,7 @@ const RendezVousPage = () => {
       <section className="py-16 bg-soporis-gray">
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="font-display text-2xl font-bold text-primary">
+            <h2 className="font-display text-3xl font-bold text-soporis-navy mb-6">
               Choisissez le type de rendez-vous
             </h2>
           </AnimatedSection>
@@ -139,11 +139,11 @@ const RendezVousPage = () => {
       </section>
 
       {/* Alternative Contact */}
-      <section className="py-16 bg-soporis-gray">
+      <section className="py-16 bg-soporis-gray mb-12">
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center max-w-2xl mx-auto">
             <Calendar className="h-12 w-12 text-soporis-gold mx-auto mb-6" />
-            <h2 className="font-display text-2xl font-bold text-primary mb-4">
+            <h2 className="font-display text-3xl font-bold text-soporis-navy mb-6">
               Pas disponible sur ces créneaux ?
             </h2>
             <p className="text-muted-foreground mb-8">
@@ -156,15 +156,15 @@ const RendezVousPage = () => {
                   Envoyer un email
                 </Button>
               </a>
-              <a
-                href="https://wa.me/33600000000?text=Bonjour, je souhaite prendre rendez-vous avec Soporis Group."
+              <Link
+                href="https://wa.me/+21626315088?text=Bonjour, je souhaite prendre rendez-vous avec Soporis Group."
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Button variant="outline" size="lg">
-                  💬 WhatsApp
+                <Button variant="outline" size="lg" className="bg-soporis-gold">
+                  <FaWhatsapp /> WhatsApp
                 </Button>
-              </a>
+              </Link>
             </div>
           </AnimatedSection>
         </div>

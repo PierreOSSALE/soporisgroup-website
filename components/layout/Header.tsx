@@ -98,7 +98,7 @@ export default function Header() {
                   after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-1
                   after:h-0.5 after:w-0 hover:after:bg-primary after:rounded-full
                   after:transition-all after:duration-300 after:ease-in-out
-                  hover:after:w-[70%]
+                  hover:after:w-[70%] text-primary/80
                   ${
                     pathname === item.href
                       ? "text-primary after:w-[70%]"

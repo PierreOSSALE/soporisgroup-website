@@ -50,6 +50,7 @@
   --soporis-blue-accent: 210 60% 50%;
   --soporis-gray: 210 20% 96%;
   --soporis-gray-dark: 220 15% 75%;
+  --soporis-white: 210 20% 98%;
 
   /* Sidebar variables (light mode) */
   --sidebar-background: 0 0% 98%;
@@ -133,6 +134,7 @@
 
   /* Couleurs Soporis personnalisées */
   --color-soporis-navy: hsl(var(--soporis-navy));
+  --color-soporis-white: hsl(var(--soporis-white));
   --color-soporis-navy-light: hsl(var(--soporis-navy-light));
   --color-soporis-gold: hsl(var(--soporis-gold));
   --color-soporis-gold-light: hsl(var(--soporis-gold-light));
@@ -251,6 +253,10 @@
 
   .shadow-button {
     box-shadow: 0 4px 15px -3px hsl(220 45% 18% / 0.25);
+  }
+
+  .shadow-header {
+    box-shadow: 0 4px 15px -3px hsl(210 20% 98%);
   }
 
   .text-gradient-gold {

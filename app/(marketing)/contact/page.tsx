@@ -29,7 +29,7 @@ export default function ContactPage() {
   };
   return (
     <>
-      <div className="pt-38 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -40,7 +40,7 @@ export default function ContactPage() {
               Accueil
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-primary font-medium">Contact</span>
+            <span className="text-soporis-navy font-medium">Contact</span>
           </nav>
         </div>
       </div>
