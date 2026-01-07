@@ -31,6 +31,8 @@ export default function Header() {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const headerRef = useRef<HTMLDivElement | null>(null);
+  const shadowClass =
+    theme === "dark" ? "shadow-navbar-white" : "shadow-navbar";
 
   // Éviter le flash de logo pendant l'hydratation
   useEffect(() => {
@@ -83,14 +85,17 @@ export default function Header() {
   return (
     <header
       ref={headerRef}
-      className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl"
+      className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl "
     >
       <div
-        className={`relative px-4 sm:px-6 lg:px-8  ${
-          scrolled || isMenuOpen
-            ? "bg-card/90 backdrop-blur-md shadow-navbar"
-            : "bg-card shadow-navbar"
-        } ${isMenuOpen ? "rounded-t-2xl" : "rounded-full"}`}
+        className={`relative px-4 sm:px-6 lg:px-8
+    ${
+      scrolled || isMenuOpen
+        ? `bg-card/90 backdrop-blur-md ${shadowClass}`
+        : `bg-card ${shadowClass}`
+    }
+    ${isMenuOpen ? "rounded-t-2xl" : "rounded-full"}
+  `}
       >
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 shrink-0">

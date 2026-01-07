@@ -250,7 +250,9 @@
   .shadow-navbar {
     box-shadow: 0 4px 30px -4px hsl(220 45% 18% / 0.1);
   }
-
+  .shadow-navbar-white {
+    box-shadow: 0 4px 30px -4px hsla(0, 0%, 80%, 0.362);
+  }
   .shadow-button {
     box-shadow: 0 4px 15px -3px hsl(220 45% 18% / 0.25);
   }
