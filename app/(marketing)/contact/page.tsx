@@ -2,31 +2,95 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Home, ChevronRight, Mail, Send } from "lucide-react";
+import { Home, ChevronRight, Mail, Send, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Route } from "next";
 import { AnimatedSection } from "@/components/animations/AnimatedSection";
+import { createMessage } from "@/lib/actions/message.actions";
 
 export default function ContactPage() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     subject: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message envoyé !",
-      description: "Nous vous répondrons rapidement.",
-    });
-    setFormData({ name: "", email: "", subject: "", message: "" });
+
+    // Validation basique
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.subject.trim() ||
+      !formData.message.trim()
+    ) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez entrer une adresse email valide",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Appel à l'action serveur pour créer le message
+      await createMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        subject: formData.subject,
+        message: formData.message,
+        isRead: false,
+        isArchived: false,
+      });
+
+      toast({
+        title: "Message envoyé avec succès !",
+        description: "Nous vous répondrons dans les plus brefs délais.",
+      });
+
+      // Réinitialiser le formulaire
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du message:", error);
+      toast({
+        title: "Erreur",
+        description:
+          "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
   return (
     <>
       <div className="pt-38 pb-4 bg-soporis-white">
@@ -57,7 +121,7 @@ export default function ContactPage() {
               Une question ? Un projet ? N'hésitez pas à nous contacter, nous
               vous répondrons rapidement.
             </p>
-          </div>{" "}
+          </div>
         </AnimatedSection>
       </div>
 
@@ -66,7 +130,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {/* Contact Form */}
-            <div className="bg-card rounded-2xl p-8 border border-border">
+            <div className="bg-card rounded-2xl p-8 border border-border h-auto md:max-h-160">
               <h2 className="font-display text-2xl font-bold text-primary mb-6">
                 Envoyez-nous un message
               </h2>
@@ -74,7 +138,7 @@ export default function ContactPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Nom complet
+                      Nom complet *
                     </label>
                     <Input
                       value={formData.name}
@@ -83,11 +147,12 @@ export default function ContactPage() {
                       }
                       placeholder="Votre nom"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Email
+                      Email *
                     </label>
                     <Input
                       type="email"
@@ -97,12 +162,29 @@ export default function ContactPage() {
                       }
                       placeholder="votre@email.com"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Sujet
+                    Téléphone (optionnel)
+                  </label>
+                  <Input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    placeholder="06 12 34 56 78"
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Sujet *
                   </label>
                   <Input
                     value={formData.subject}
@@ -111,11 +193,13 @@ export default function ContactPage() {
                     }
                     placeholder="Sujet de votre message"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Message
+                    Message *
                   </label>
                   <Textarea
                     value={formData.message}
@@ -125,16 +209,28 @@ export default function ContactPage() {
                     placeholder="Décrivez votre projet..."
                     rows={5}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
+
                 <Button
                   type="submit"
                   variant="default"
                   size="lg"
                   className="w-full group"
+                  disabled={isSubmitting}
                 >
-                  Envoyer le message
-                  <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      Envoyer le message
+                      <Send className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
                 </Button>
               </form>
             </div>
@@ -160,20 +256,15 @@ export default function ContactPage() {
                       </p>
                     </div>
                   </a>
-                  <a
-                    href="mailto:support@soporisgroup.com"
-                    className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:shadow-card transition-all duration-300"
-                  >
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Mail className="h-6 w-6 text-primary" />
+                      <Phone className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold text-primary">Support</p>
-                      <p className="text-muted-foreground">
-                        support@soporisgroup.com
-                      </p>
+                      <p className="font-semibold text-primary">Téléphone</p>
+                      <p className="text-muted-foreground">+216 263 150 88</p>
                     </div>
-                  </a>
+                  </div>
                 </div>
               </div>
 
@@ -187,10 +278,43 @@ export default function ContactPage() {
                   équipe.
                 </p>
                 <Link href={"/rendez-vous" as Route}>
-                  <Button variant="gold" size="lg">
+                  <Button variant="gold" size="lg" className="w-full">
                     Prendre rendez-vous
                   </Button>
                 </Link>
+              </div>
+
+              {/* Informations supplémentaires */}
+              <div className="bg-card rounded-2xl p-6 border border-border">
+                <h3 className="font-display text-lg font-bold text-primary mb-3">
+                  Horaires d'ouverture
+                </h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex justify-between">
+                    <span>Lundi - Vendredi</span>
+                    <span className="font-medium text-foreground">
+                      9h - 18h
+                    </span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Samedi</span>
+                    <span className="font-medium text-foreground">
+                      10h - 14h
+                    </span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Dimanche</span>
+                    <span className="font-medium text-foreground">Fermé</span>
+                  </li>
+                </ul>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    * Les champs marqués d'un astérisque sont obligatoires.
+                    <br />
+                    Nous nous engageons à répondre à votre message sous 24h
+                    ouvrées.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-//app/(admin)/admin-appointments/page.tsx
+//app/(assistance)/assistant-appointments/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -29,17 +29,17 @@ import {
 import { Search, Eye, Check, X, CheckCircle } from "lucide-react";
 import {
   mockAppointments,
-  AdminAppointment,
-} from "@/components/data/mockAdminData";
+  AssistantAppointment,
+} from "@/components/data/mockAssistantData";
 import { useToast } from "@/hooks/use-toast";
 
-export default function AdminAppointments() {
+export default function AssistantAppointments() {
   const [appointments, setAppointments] =
-    useState<AdminAppointment[]>(mockAppointments);
+    useState<AssistantAppointment[]>(mockAppointments);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAppointment, setSelectedAppointment] =
-    useState<AdminAppointment | null>(null);
+    useState<AssistantAppointment | null>(null);
   const { toast } = useToast();
 
   const filteredAppointments = appointments.filter((apt) => {
@@ -50,7 +50,7 @@ export default function AdminAppointments() {
     return matchesSearch && matchesStatus;
   });
 
-  const updateStatus = (id: string, status: AdminAppointment["status"]) => {
+  const updateStatus = (id: string, status: AssistantAppointment["status"]) => {
     setAppointments(
       appointments.map((apt) => (apt.id === id ? { ...apt, status } : apt))
     );
@@ -68,7 +68,7 @@ export default function AdminAppointments() {
     });
   };
 
-  const getStatusColor = (status: AdminAppointment["status"]) => {
+  const getStatusColor = (status: AssistantAppointment["status"]) => {
     switch (status) {
       case "confirmed":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
@@ -83,7 +83,7 @@ export default function AdminAppointments() {
     }
   };
 
-  const getStatusLabel = (status: AdminAppointment["status"]) => {
+  const getStatusLabel = (status: AssistantAppointment["status"]) => {
     switch (status) {
       case "confirmed":
         return "Confirmé";

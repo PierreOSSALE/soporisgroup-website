@@ -162,7 +162,7 @@ export function Chatbot() {
         whileTap={{ scale: 0.95 }}
         aria-label="Ouvrir le chat"
       >
-        <Avatar className="w-12 h-12 border-2 border-primary cursor-pointer">
+        <Avatar className="w-14 h-14 border-2 border-primary cursor-pointer">
           <AvatarImage
             src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
             alt="Support Avatar"
@@ -172,7 +172,7 @@ export function Chatbot() {
             <User className="w-8 h-8 text-primary" />
           </AvatarFallback>
         </Avatar>
-        {/* <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-25" /> */}
+        <span className="absolute inset-0 rounded-full bg-animchatbot animate-ping opacity-25" />
         <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full z-10" />
       </motion.button>
 

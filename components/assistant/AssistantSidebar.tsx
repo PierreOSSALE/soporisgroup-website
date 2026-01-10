@@ -7,47 +7,37 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   LayoutDashboard,
-  FolderKanban,
-  Wrench,
-  FileText,
   Calendar,
   HelpCircle,
-  Package,
   MessageSquare,
-  Star,
   Menu,
   LogOut,
   ChevronLeft,
 } from "lucide-react";
 import { Route } from "next";
 
-export interface AdminSidebarProps {
+export interface AssistantSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: FolderKanban, label: "Projets", href: "/admin-projects" },
-  { icon: Wrench, label: "Services", href: "/admin-services" },
-  { icon: FileText, label: "Blog", href: "/admin-blog" },
-  { icon: Calendar, label: "Rendez-vous", href: "/admin-appointments" },
-  { icon: HelpCircle, label: "FAQ", href: "/admin-faq" },
-  { icon: Package, label: "Packs", href: "/admin-packs" },
-  { icon: Star, label: "Témoignages", href: "/admin-testimonials" },
-  { icon: MessageSquare, label: "Messages", href: "/admin-messages" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/assistant-dashboard" },
+  { icon: Calendar, label: "Rendez-vous", href: "/assistant-appointments" },
+  { icon: HelpCircle, label: "FAQ", href: "/assistant-faq" },
+  { icon: MessageSquare, label: "Messages", href: "/assistant-messages" },
 ];
 
-export default function AdminSidebar({
+export default function AssistantSidebar({
   sidebarOpen,
   setSidebarOpen,
-}: AdminSidebarProps) {
+}: AssistantSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
   const isActive = (href: string) => {
-    if (href === "/admin") {
-      return pathname === "/admin";
+    if (href === "/assistant-assistant") {
+      return pathname === "/assistant-assistant";
     }
     return pathname.startsWith(href);
   };
@@ -63,14 +53,14 @@ export default function AdminSidebar({
       <div className="flex h-16 items-center justify-between px-4 border-b border-border">
         {sidebarOpen && (
           <Link
-            href={"/dashboard" as Route}
+            href={"/assistant-dashboard" as Route}
             className="flex items-center gap-2"
           >
             <span className="font-display text-xl font-bold text-primary">
               Soporis
             </span>
             <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded">
-              Admin
+              Assistant
             </span>
           </Link>
         )}

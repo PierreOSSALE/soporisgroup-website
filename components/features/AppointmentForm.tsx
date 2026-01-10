@@ -1,8 +1,7 @@
-// components/AppointmentForm.tsx (Client Component)
 "use client";
 
-import { useFormState } from "react-dom"; // ou "react" si React 19
-import { createAppointment } from "@/lib/actions/appointment";
+import { useFormState } from "react-dom";
+import { createAppointment } from "@/lib/actions/appointment.actions"; // <-- Correction du chemin
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 

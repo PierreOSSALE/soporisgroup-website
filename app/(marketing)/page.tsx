@@ -1,5 +1,6 @@
+// app/(marketing)/page.tsx
 import type { Metadata } from "next";
-import { HomeClient } from "./home-client";
+import HomeClient from "./home-client";
 
 // Métadonnées spécifiques à la page d'accueil
 export const metadata: Metadata = {

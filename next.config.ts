@@ -1,6 +1,5 @@
-// next.config.mjs
 /** @type {import('next').NextConfig} */
-const nextConfig: import("next").NextConfig = {
+const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
@@ -30,6 +29,56 @@ const nextConfig: import("next").NextConfig = {
   typedRoutes: true,
 
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
+
+  // 🔥 AJOUTE CES REWRITES POUR LES SOUS-DOMAINES
+  async rewrites() {
+    return [
+      // Pour admin.soporisgroup.com → /admin/*
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "admin.soporisgroup.com",
+          },
+        ],
+        destination: "/admin/:path*",
+      },
+      // Pour assistance.soporisgroup.com → /assistant/*
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "assistance.soporisgroup.com",
+          },
+        ],
+        destination: "/assistant/:path*",
+      },
+      // Pour soporisgroup.com → /marketing/* (site public)
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "soporisgroup.com",
+          },
+        ],
+        destination: "/marketing/:path*",
+      },
+      // Pour www.soporisgroup.com → /marketing/*
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.soporisgroup.com",
+          },
+        ],
+        destination: "/marketing/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -1,15 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Route } from "next";
-import {
-  Home,
-  ChevronRight,
-  Palette,
-  Code2,
-  Gauge,
-  ArrowRight,
-  Check,
-} from "lucide-react";
+import { Home, ChevronRight } from "lucide-react";
 import { Services } from "@/components/features/Services";
 
 export const metadata: Metadata = {

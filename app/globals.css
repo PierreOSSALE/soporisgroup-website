@@ -14,6 +14,7 @@
   /* Soporis Group - Navy Blue Theme */
   --background: 210 20% 98%;
   --foreground: 220 40% 13%;
+  --animchatbot: 220 40% 8%;
 
   --card: 0 0% 100%;
   --card-foreground: 220 40% 13%;
@@ -48,7 +49,7 @@
   --soporis-gold: 38 80% 55%;
   --soporis-gold-light: 40 75% 65%;
   --soporis-blue-accent: 210 60% 50%;
-  --soporis-gray: 210 20% 96%;
+  --soporis-gray: 210 20% 94%;
   --soporis-gray-dark: 220 15% 75%;
   --soporis-white: 210 20% 98%;
 
@@ -66,11 +67,11 @@
   --font-family-display: "Playfair Display", Georgia, serif;
   --font-family-sans: "Inter", system-ui, sans-serif;
 }
-
 /* Dark theme variables */
 .dark {
   --background: 220 40% 8%;
   --foreground: 210 40% 98%;
+  --animchatbot: 210 20% 98%;
 
   --card: 220 40% 12%;
   --card-foreground: 210 40% 98%;
@@ -113,6 +114,7 @@
 @theme {
   /* Couleurs de base */
   --color-background: hsl(var(--background));
+  --color-animchatbot: hsl(var(--animchatbot));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));

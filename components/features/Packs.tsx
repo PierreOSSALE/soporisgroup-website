@@ -1,4 +1,8 @@
-import { Check, ArrowRight, Star } from "lucide-react";
+// components/features/Packs.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { Check, ArrowRight, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AnimatedSection,
@@ -8,6 +12,8 @@ import {
 import Link from "next/link";
 import { Route } from "next";
 import { FaWhatsapp } from "react-icons/fa";
+import { getActivePacks } from "@/lib/actions/pack.actions";
+import type { Pack } from "@prisma/client";
 
 type PacksProps = {
   className?: string;
@@ -15,74 +21,98 @@ type PacksProps = {
   margin?: string;
 };
 
-const packs = [
-  {
-    name: "Starter",
-    price: "499",
-    priceNote: "à partir de",
-    description: "Idéal pour les petites entreprises et les indépendants",
-    features: [
-      "Design UI/UX personnalisé",
-      "Site vitrine responsive (5 pages)",
-      "Formulaire de contact",
-      "Optimisation SEO de base",
-      "Hébergement 1 an inclus",
-    ],
-    featured: false,
-  },
-  {
-    name: "Pro",
-    price: "999",
-    priceNote: "à partir de",
-    description: "Pour les entreprises en croissance qui veulent se démarquer",
-    features: [
-      "Tout le pack Starter",
-      "Jusqu'à 10 pages",
-      "Animations et interactions avancées",
-      "Intégration CMS (blog)",
-      "Optimisation SEO avancée",
-      "Analytics et reporting",
-      "Support prioritaire 6 mois",
-    ],
-    featured: true,
-  },
-  {
-    name: "Premium",
-    price: "1999",
-    priceNote: "à partir de",
-    description: "Solution complète pour les projets ambitieux",
-    features: [
-      "Tout le pack Pro",
-      "Pages illimitées",
-      "Application web sur mesure",
-      "Intégrations API personnalisées",
-      "E-commerce / Fonctionnalités avancées",
-      "Formation équipe incluse",
-      "Maintenance 12 mois",
-      "Support dédié 24/7",
-    ],
-    featured: false,
-  },
-];
-
 export function Packs({
   className = "",
   titleColor = "",
   margin = "",
 }: PacksProps) {
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const whatsappNumber = "+21626315088";
+
+  useEffect(() => {
+    const loadPacks = async () => {
+      try {
+        const data = await getActivePacks();
+        setPacks(data || []);
+      } catch (error) {
+        console.error("Erreur lors du chargement des packs:", error);
+        setPacks([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPacks();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section className={`py-24 w-full lg:px-30 ${className}`}>
+        <div className={`container mx-auto px-4 ${margin || ""}`}>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <div className="h-12 bg-gray-200 rounded-lg w-64 mx-auto mb-4 animate-pulse" />
+            <div className="w-16 h-1 bg-gray-200 mx-auto mb-6" />
+            <div className="h-6 bg-gray-200 rounded w-96 mx-auto animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-8 max-w-6xl mx-auto">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-8 border animate-pulse"
+              >
+                <div className="h-8 bg-gray-200 rounded w-1/3 mb-4" />
+                <div className="h-10 bg-gray-200 rounded w-1/2 mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-full mb-6" />
+                <div className="space-y-3 mb-8">
+                  {[...Array(5)].map((_, j) => (
+                    <div key={j} className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-gray-200 rounded-full" />
+                      <div className="h-3 bg-gray-200 rounded w-full" />
+                    </div>
+                  ))}
+                </div>
+                <div className="h-12 bg-gray-200 rounded-lg w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (packs.length === 0) {
+    return (
+      <section className={`py-24 w-full lg:px-30 ${className}`}>
+        <div className={`container mx-auto px-4 ${margin || ""}`}>
+          <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
+            <h2
+              className={`font-display text-3xl sm:text-4xl font-bold mb-4 ${
+                titleColor || "text-foreground"
+              }`}
+            >
+              Nos packs & offres
+            </h2>
+            <div className="w-16 h-1 bg-soporis-gold mx-auto mb-6" />
+            <p className="text-muted-foreground">
+              Aucun pack disponible pour le moment.
+            </p>
+          </AnimatedSection>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={`py-24 w-full lg:px-30 ${className}`}>
       <div className={`container mx-auto px-4 ${margin || ""}`}>
         {/* Header */}
-        <AnimatedSection className="text-center max-w-2xl mx-auto mb-16 ">
+        <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
           <h2
             className={`font-display text-3xl sm:text-4xl font-bold mb-4 ${
               titleColor || "text-foreground"
             }`}
           >
-            {" "}
             Nos packs & offres
           </h2>
           <div className="w-16 h-1 bg-soporis-gold mx-auto mb-6" />
@@ -95,16 +125,16 @@ export function Packs({
         {/* Packs Grid */}
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-8 max-w-6xl mx-auto overflow-x-hidden md:overflow-x-visible">
           {packs.map((pack) => (
-            <StaggerItem key={pack.name}>
+            <StaggerItem key={pack.id}>
               <div
-                className={`relative p-8 transition-all  rounded-2xl duration-300 h-full flex flex-col ${
-                  pack.featured
+                className={`relative p-8 transition-all rounded-2xl duration-300 h-full flex flex-col ${
+                  pack.isPopular
                     ? "bg-primary text-primary-foreground shadow-card md:scale-105"
                     : "bg-card border border-border hover:shadow-card"
                 }`}
               >
                 {/* Featured Badge */}
-                {pack.featured && (
+                {pack.isPopular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <div className="inline-flex items-center gap-1 px-4 py-1 rounded-full bg-soporis-gold text-primary text-sm font-semibold">
                       <Star className="h-3.5 w-3.5" />
@@ -113,11 +143,22 @@ export function Packs({
                   </div>
                 )}
 
+                {/* Promotion Badge */}
+                {pack.isPromo && pack.promoLabel && (
+                  <div className="absolute -top-4 left-4">
+                    <div className="inline-flex items-center gap-1 px-4 py-1 rounded-full bg-red-500 text-white text-sm font-semibold">
+                      {pack.promoLabel}
+                    </div>
+                  </div>
+                )}
+
                 {/* Header */}
                 <div className="mb-6">
                   <h3
                     className={`font-display text-2xl font-bold mb-2 ${
-                      pack.featured ? "text-primary-foreground" : "text-primary"
+                      pack.isPopular
+                        ? "text-primary-foreground"
+                        : "text-primary"
                     }`}
                   >
                     {pack.name}
@@ -125,28 +166,30 @@ export function Packs({
 
                   {/* Price */}
                   <div className="mb-3">
-                    <span
-                      className={`text-xs ${
-                        pack.featured
-                          ? "text-primary-foreground/70"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {pack.priceNote}
-                    </span>
                     <div className="flex items-baseline gap-1">
+                      {pack.originalPrice && (
+                        <span
+                          className={`text-sm line-through mr-2 ${
+                            pack.isPopular
+                              ? "text-primary-foreground/60"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {pack.originalPrice.toFixed(0)}€
+                        </span>
+                      )}
                       <span
                         className={`font-display text-4xl font-bold ${
-                          pack.featured
+                          pack.isPopular
                             ? "text-soporis-gold"
                             : "text-soporis-gold"
                         }`}
                       >
-                        {pack.price}
+                        {pack.price.toFixed(0)}
                       </span>
                       <span
                         className={`text-lg ${
-                          pack.featured
+                          pack.isPopular
                             ? "text-primary-foreground/80"
                             : "text-muted-foreground"
                         }`}
@@ -158,7 +201,7 @@ export function Packs({
 
                   <p
                     className={`text-sm ${
-                      pack.featured
+                      pack.isPopular
                         ? "text-primary-foreground/80"
                         : "text-muted-foreground"
                     }`}
@@ -169,18 +212,18 @@ export function Packs({
 
                 {/* Features */}
                 <ul className="space-y-3 mb-8 grow">
-                  {pack.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
+                  {pack.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
                       <Check
                         className={`h-5 w-5 shrink-0 mt-0.5 ${
-                          pack.featured
+                          pack.isPopular
                             ? "text-soporis-gold"
                             : "text-soporis-gold"
                         }`}
                       />
                       <span
                         className={`text-sm ${
-                          pack.featured
+                          pack.isPopular
                             ? "text-primary-foreground/90"
                             : "text-foreground"
                         }`}
@@ -191,13 +234,27 @@ export function Packs({
                   ))}
                 </ul>
 
+                {/* Promo End Date */}
+                {pack.isPromo && pack.promoEndDate && (
+                  <div className="mb-4 p-3 bg-soporis-gold/10 rounded-lg">
+                    <p className="text-xs text-center text-soporis-gold font-medium">
+                      ⏰ Offre valable jusqu'au{" "}
+                      {new Date(pack.promoEndDate).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                )}
+
                 {/* CTAs */}
                 <div className="space-y-3 mt-auto">
                   <Link href={"/contact" as Route} className="block">
                     <Button
-                      variant={pack.featured ? "gold" : "default"}
+                      variant={pack.isPopular ? "gold" : "default"}
                       size="lg"
-                      className="w-full  rounded-full cursor-pointer"
+                      className="w-full rounded-full cursor-pointer"
                     >
                       Demander un devis
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -214,11 +271,13 @@ export function Packs({
                     <Button
                       variant="outline"
                       size="lg"
-                      className={`w-full rounded-full cursor-pointerte text-primary bg-soporis-gold${
-                        pack.featured ? "hover:text-soporis-gold" : ""
+                      className={`w-full rounded-full cursor-pointer ${
+                        pack.isPopular
+                          ? "border-soporis-gold text-soporis-gold hover:bg-soporis-gold/10"
+                          : "text-primary border-primary hover:bg-primary/10"
                       }`}
                     >
-                      <FaWhatsapp />
+                      <FaWhatsapp className="mr-2" />
                       Discuter sur WhatsApp
                     </Button>
                   </Link>

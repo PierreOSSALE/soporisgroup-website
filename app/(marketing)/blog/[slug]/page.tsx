@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "@/components/animations/AnimatedSection";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { ViewIncrementer } from "@/components/features/blog/ViewIncrementer";
 
 import type { BlogArticle } from "@prisma/client";
 
@@ -30,6 +31,7 @@ export default async function BlogArticlePage({
 
   return (
     <div className="min-h-screen bg-white">
+      <ViewIncrementer articleId={article.id} />
       {/* Breadcrumb */}
       <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4 max-w-5xl">
@@ -66,21 +68,24 @@ export default async function BlogArticlePage({
               <div className="flex items-center gap-6 text-sm text-slate-400">
                 <span className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />{" "}
-                  {format(new Date(article.created_at), "d MMMM yyyy", {
+                  {format(new Date(article.createdAt), "d MMMM yyyy", {
                     locale: fr,
                   })}
                 </span>
                 <span className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" /> {article.read_time}
+                  <Clock className="h-4 w-4" /> {article.readTime}
+                </span>{" "}
+                <span className="flex items-center gap-2 text-slate-500">
+                  👁️ {article.views} vues
                 </span>
               </div>
             </div>
 
             {/* Featured Image - Matching Rounded Corners */}
-            {article.image_url && (
+            {article.imageUrl && (
               <div className="relative aspect-21/9 w-full rounded-2xl md:rounded-[2.5rem] overflow-hidden mb-12 shadow-sm border border-slate-100">
                 <img
-                  src={article.image_url}
+                  src={article.imageUrl}
                   alt={article.title}
                   className="w-full h-full object-cover"
                 />

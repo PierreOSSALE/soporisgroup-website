@@ -10,23 +10,152 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// Enum pour les rôles utilisateurs
+enum UserRole {
+  user
+  assistant
+  admin
+}
+
+// Enum pour les statuts de projets
+enum ProjectStatus {
+  draft
+  published
+  archived
+}
+
+// Enum pour les statuts de rendez-vous
+enum AppointmentStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String?
+  role       UserRole @default(user)
+  password   String
+  avatar     String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model FAQ {
+  id         String   @id @default(uuid())
+  question   String
+  answer     String   @db.Text
+  category   String
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("faqs")
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  title        String
+  subtitle     String
+  slug         String        @unique
+  category     String
+  client       String
+  duration     String
+  pack         String
+  year         String
+  status       ProjectStatus @default(draft)
+  imageUrl     String?       @map("image_url")
+  featured     Boolean       @default(false)
+  description  String?       @db.Text
+  challenges   Json?         // Pour stocker les défis (string[])
+  solutions    Json?         // Pour stocker les solutions (string[])
+  screenshots  Json?         // Pour stocker les captures d'écran (ProjectScreenshot[])
+  technologies Json?         // Pour stocker les technologies (string[])
+  results      Json?         // Pour stocker les résultats (string[])
+  testimonial  Json?         // Pour stocker le témoignage ({ quote, author, role })
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  icon        String
+  price       String
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  features    String[]
+  slug        String   @unique
+  color       String?  @default("#3B82F6")
+  imageUrl    String?  @map("image_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
 model BlogArticle {
   id         String   @id @default(uuid())
   title      String
   slug       String   @unique
   excerpt    String
   content    String   @db.Text
-  image_url  String?
+  imageUrl   String?  @map("image_url")
   category   String
-  read_time  String   @default("5 min")
+  readTime   String   @default("5 min") @map("read_time")
   published  Boolean  @default(false)
-  created_at DateTime @default(now()) @db.Timestamptz
-  updated_at DateTime @updatedAt @db.Timestamptz
+  author     String
+  views      Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
+  @@map("blog_articles")
 }
 
+model Pack {
+  id           String   @id @default(uuid())
+  name         String
+  description  String   @db.Text
+  price        Float
+  originalPrice Float?  @map("original_price")
+  features     String[]
+  isPopular    Boolean  @default(false) @map("is_popular")
+  isPromo      Boolean  @default(false) @map("is_promo")
+  promoLabel   String?  @map("promo_label")
+  promoEndDate DateTime? @map("promo_end_date")
+  isActive     Boolean  @default(true) @map("is_active")
+  order        Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-model appointments {
+  @@map("packs")
+}
+model Testimonial {
+  id        String   @id @default(uuid())
+  author    String
+  role      String
+  company   String
+  content   String   @db.Text
+  rating    Int
+  avatar    String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("testimonials")
+}
+
+model Appointment {
   id         String   @id @default(uuid())
   name       String
   email      String
@@ -34,8 +163,26 @@ model appointments {
   company    String?
   service    String
   date       DateTime @db.Date
-  time_slot  String
-  message    String?
-  status     String   @default("pending")
-  created_at DateTime @default(now()) @db.Timestamptz
+  timeSlot   String   @map("time_slot")
+  message    String?  @db.Text
+  status     AppointmentStatus @default(pending)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("appointments")
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  subject    String
+  message    String   @db.Text
+  isRead     Boolean  @default(false) @map("is_read")
+  isArchived Boolean  @default(false) @map("is_archived")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("messages")
 }
