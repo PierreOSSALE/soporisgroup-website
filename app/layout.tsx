@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
+import SupabaseProvider from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased">
-        <Providers>{children}</Providers>
+        <SupabaseProvider>{children}</SupabaseProvider>{" "}
       </body>
     </html>
   );

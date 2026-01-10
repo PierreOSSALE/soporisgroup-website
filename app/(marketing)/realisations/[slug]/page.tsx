@@ -1,4 +1,4 @@
-//app/(marketing)/realisations/[slug]/page.tsx
+// app/(marketing)/realisations/[slug]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,29 +18,83 @@ import {
   Quote,
   ExternalLink,
 } from "lucide-react";
-import { getProjectBySlug, type Project } from "@/components/data/projects";
+import { getProjectBySlug } from "@/lib/actions/project.actions";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
+
+// Définir les types pour les données de Prisma
+type Project = {
+  id: string;
+  title: string;
+  subtitle: string;
+  slug: string;
+  category: string;
+  client: string;
+  duration: string;
+  pack: string;
+  year: string;
+  status: "draft" | "published" | "archived";
+  imageUrl: string | null;
+  featured: boolean;
+  description: string | null;
+  technologies: any; // JSON field
+  challenges: any; // JSON field
+  solutions: any; // JSON field
+  results: any; // JSON field
+  screenshots: any; // JSON field
+  testimonial: any; // JSON field
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Type pour les captures d'écran
+type Screenshot = {
+  url: string;
+  caption: string;
+};
+
+// Type pour le témoignage
+type Testimonial = {
+  quote: string;
+  author: string;
+  role: string;
+};
 
 export default function RealisationDetail() {
   const router = useRouter();
   const params = useParams();
   const [project, setProject] = useState<Project | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const slug = params.slug as string;
 
   useEffect(() => {
-    if (slug) {
-      const foundProject = getProjectBySlug(slug);
-      setProject(foundProject || null);
+    const loadProject = async () => {
+      if (slug) {
+        try {
+          setIsLoading(true);
+          const data = await getProjectBySlug(slug);
 
-      if (!foundProject) {
-        router.push("/realisations");
+          // Vérifier si le projet est publié
+          if (data.status !== "published") {
+            router.push("/realisations");
+            return;
+          }
+
+          setProject(data as Project);
+        } catch (error) {
+          console.error("Erreur lors du chargement du projet:", error);
+          router.push("/realisations");
+        } finally {
+          setIsLoading(false);
+        }
       }
-    }
+    };
+
+    loadProject();
   }, [slug, router]);
 
-  if (!project) {
+  if (isLoading) {
     return (
       <>
         <div className="pt-28 pb-8 bg-background">
@@ -51,6 +105,37 @@ export default function RealisationDetail() {
       </>
     );
   }
+
+  if (!project) {
+    return (
+      <>
+        <div className="pt-28 pb-8 bg-background">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-2xl font-bold text-primary mb-4">
+              Projet non trouvé
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              Le projet que vous recherchez n'existe pas ou a été déplacé.
+            </p>
+            <Link href="/realisations">
+              <Button>Voir toutes les réalisations</Button>
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Convertir les champs JSON en types TypeScript
+  const technologies = (project.technologies as string[]) || [];
+  const challenges = (project.challenges as string[]) || [];
+  const solutions = (project.solutions as string[]) || [];
+  const results = (project.results as string[]) || [];
+  const screenshots = (project.screenshots as Screenshot[]) || [];
+  const testimonial = project.testimonial as Testimonial | null;
+
+  // Utiliser l'image du projet ou une image par défaut
+  const projectImage = project.imageUrl || "/placeholder-project.jpg";
 
   return (
     <>
@@ -127,11 +212,12 @@ export default function RealisationDetail() {
           <AnimatedSection delay={0.1}>
             <div className="relative rounded-2xl overflow-hidden aspect-video mb-12">
               <Image
-                src={project.image}
+                src={projectImage}
                 alt={project.title}
                 fill
                 className="w-full h-full object-cover"
                 sizes="100vw"
+                priority
               />
               <div className="absolute inset-0 bg-linear-to-t from-primary/20 to-transparent" />
             </div>
@@ -146,71 +232,83 @@ export default function RealisationDetail() {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-12">
               {/* Description */}
-              <AnimatedSection>
-                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-4">
-                  À propos du projet
-                </h2>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  {project.description}
-                </p>
-              </AnimatedSection>
+              {project.description && (
+                <AnimatedSection>
+                  <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-4">
+                    À propos du projet
+                  </h2>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    {project.description}
+                  </p>
+                </AnimatedSection>
+              )}
 
               {/* Challenges */}
-              <AnimatedSection delay={0.1}>
-                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
-                  Les défis
-                </h2>
-                <ul className="space-y-3">
-                  {project.challenges.map((challenge, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="shrink-0 w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-sm font-medium">
-                        {index + 1}
-                      </span>
-                      <span className="text-muted-foreground">{challenge}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AnimatedSection>
+              {challenges.length > 0 && (
+                <AnimatedSection delay={0.1}>
+                  <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
+                    Les défis
+                  </h2>
+                  <ul className="space-y-3">
+                    {challenges.map((challenge, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {challenge}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </AnimatedSection>
+              )}
 
               {/* Solutions */}
-              <AnimatedSection delay={0.2}>
-                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
-                  Nos solutions
-                </h2>
-                <ul className="space-y-3">
-                  {project.solutions.map((solution, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-soporis-gold shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{solution}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AnimatedSection>
+              {solutions.length > 0 && (
+                <AnimatedSection delay={0.2}>
+                  <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
+                    Nos solutions
+                  </h2>
+                  <ul className="space-y-3">
+                    {solutions.map((solution, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <CheckCircle2 className="h-5 w-5 text-soporis-gold shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">
+                          {solution}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </AnimatedSection>
+              )}
 
               {/* Screenshots */}
-              <AnimatedSection delay={0.3}>
-                <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
-                  Captures d'écran
-                </h2>
-                <div className="space-y-6">
-                  {project.screenshots.map((screenshot, index) => (
-                    <div key={index} className="group">
-                      <div className="relative rounded-xl overflow-hidden border border-border aspect-video">
-                        <Image
-                          src={screenshot.url}
-                          alt={screenshot.caption}
-                          fill
-                          className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
+              {screenshots.length > 0 && (
+                <AnimatedSection delay={0.3}>
+                  <h2 className="font-display text-2xl font-bold text-soporis-navy  mb-6">
+                    Captures d'écran
+                  </h2>
+                  <div className="space-y-6">
+                    {screenshots.map((screenshot, index) => (
+                      <div key={index} className="group">
+                        <div className="relative rounded-xl overflow-hidden border border-border aspect-video">
+                          <Image
+                            src={screenshot.url}
+                            alt={screenshot.caption}
+                            fill
+                            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-3 text-center italic">
+                          {screenshot.caption}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-3 text-center italic">
-                        {screenshot.caption}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </AnimatedSection>
+                    ))}
+                  </div>
+                </AnimatedSection>
+              )}
             </div>
 
             {/* Sidebar */}
@@ -256,37 +354,41 @@ export default function RealisationDetail() {
               </AnimatedSection>
 
               {/* Technologies */}
-              <AnimatedSection delay={0.3}>
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h3 className="font-display text-lg font-semibold text-soporis-white  mb-4">
-                    Technologies
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech, index) => (
-                      <Badge key={index} variant="secondary">
-                        {tech}
-                      </Badge>
-                    ))}
+              {technologies.length > 0 && (
+                <AnimatedSection delay={0.3}>
+                  <div className="bg-card rounded-2xl p-6 border border-border">
+                    <h3 className="font-display text-lg font-semibold text-soporis-white  mb-4">
+                      Technologies
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {technologies.map((tech, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </AnimatedSection>
+                </AnimatedSection>
+              )}
 
               {/* Results */}
-              <AnimatedSection delay={0.4}>
-                <div className="bg-primary rounded-2xl p-6 text-primary-foreground">
-                  <h3 className="font-display text-lg font-semibold mb-4">
-                    Résultats
-                  </h3>
-                  <ul className="space-y-3">
-                    {project.results.map((result, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-soporis-gold shrink-0 mt-0.5" />
-                        <span className="text-sm">{result}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </AnimatedSection>
+              {results.length > 0 && (
+                <AnimatedSection delay={0.4}>
+                  <div className="bg-primary rounded-2xl p-6 text-primary-foreground">
+                    <h3 className="font-display text-lg font-semibold mb-4">
+                      Résultats
+                    </h3>
+                    <ul className="space-y-3">
+                      {results.map((result, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-soporis-gold shrink-0 mt-0.5" />
+                          <span className="text-sm">{result}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </AnimatedSection>
+              )}
 
               {/* CTA */}
               <AnimatedSection delay={0.5}>
@@ -310,22 +412,20 @@ export default function RealisationDetail() {
       </section>
 
       {/* Testimonial Section */}
-      {project.testimonial && (
+      {testimonial && (
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
             <AnimatedSection>
               <div className="max-w-3xl mx-auto text-center">
                 <Quote className="h-12 w-12 text-soporis-gold mx-auto mb-6" />
                 <blockquote className="text-xl sm:text-2xl text-primary font-medium italic mb-6">
-                  "{project.testimonial.quote}"
+                  "{testimonial.quote}"
                 </blockquote>
                 <div>
                   <p className="font-semibold text-primary">
-                    {project.testimonial.author}
+                    {testimonial.author}
                   </p>
-                  <p className="text-muted-foreground">
-                    {project.testimonial.role}
-                  </p>
+                  <p className="text-muted-foreground">{testimonial.role}</p>
                 </div>
               </div>
             </AnimatedSection>

@@ -18,7 +18,6 @@ export async function createUser(data: UserInput) {
     const user = await prisma.user.create({
       data: {
         ...validated.data,
-        password: hashedPassword,
       },
     });
     revalidatePath("/admin/users");

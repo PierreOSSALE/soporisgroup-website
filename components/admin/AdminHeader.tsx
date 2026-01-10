@@ -11,11 +11,9 @@ const menuItems = [
   { label: "Projets", href: "/admin-projects" },
   { label: "Services", href: "/admin-services" },
   { label: "Blog", href: "/admin-blog" },
-  { label: "Rendez-vous", href: "/admin-appointments" },
   { label: "FAQ", href: "/admin-faq" },
   { label: "Packs & Offres", href: "/admin-packs" },
   { label: "Témoignages", href: "/admin-testimonials" },
-  { label: "Messages", href: "/admin-messages" },
 ];
 
 export default function AdminHeader({ sidebarOpen }: AdminHeaderProps) {

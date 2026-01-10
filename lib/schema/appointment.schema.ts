@@ -2,13 +2,15 @@
 import { z } from "zod";
 
 export const appointmentSchema = z.object({
-  name: z.string().min(2, "Le nom est requis"),
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   email: z.string().email("Email invalide"),
   phone: z.string().optional(),
   company: z.string().optional(),
-  service: z.string().min(2, "Le service est requis"),
-  date: z.string().min(1, "La date est requise"),
-  timeSlot: z.string().min(1, "L'horaire est requis"),
+  service: z.string().min(1, "Veuillez sélectionner un service"),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Date invalide",
+  }),
+  timeSlot: z.string().min(1, "Veuillez sélectionner un créneau"),
   message: z.string().optional(),
   status: z
     .enum(["pending", "confirmed", "cancelled", "completed"])

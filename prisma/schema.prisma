@@ -32,17 +32,21 @@ enum AppointmentStatus {
   completed
 }
 
-model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  name       String?
-  role       UserRole @default(user)
-  password   String
-  avatar     String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
 
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  role               UserRole  @default(user)
+  avatar             String?
+  isActive           Boolean   @default(true)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  supabaseId         String?   @unique
+  
+    
+  accounts      Account[]
+  sessions      Session[]
   @@map("users")
 }
 
@@ -166,6 +170,8 @@ model Appointment {
   timeSlot   String   @map("time_slot")
   message    String?  @db.Text
   status     AppointmentStatus @default(pending)
+  cancellation_token String?          @unique
+  reminder_sent      Boolean          @default(false)
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
@@ -185,4 +191,66 @@ model Message {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("messages")
+}
+
+model TimeSlot {
+  id              String   @id @default(uuid())
+  day_of_week     Int
+  start_time      String
+  end_time        String
+  duration_minutes Int
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now()) @map("created_at")
+  updated_at      DateTime @updatedAt @map("updated_at")
+
+  @@map("time_slots")
+}
+
+model BlockedDate {
+  id         String   @id @default(uuid())
+  date       String   @unique
+  reason     String?
+  created_at DateTime @default(now()) @map("created_at")
+
+  @@map("blocked_dates")
+}
+
+// Ajouter ces modèles pour NextAuth
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }

@@ -1,3 +1,4 @@
+// next.config.ts
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -76,6 +77,23 @@ const nextConfig = {
           },
         ],
         destination: "/marketing/:path*",
+      },
+    ];
+  },
+
+  // 🔥 CONFIGURATION DU PROXY POUR LA PROTECTION DES ROUTES
+  async redirects() {
+    return [
+      // Redirection depuis les anciennes URLs vers les nouvelles
+      {
+        source: "/login",
+        destination: "/auth/signin",
+        permanent: true,
+      },
+      {
+        source: "/register",
+        destination: "/auth/signup",
+        permanent: true,
       },
     ];
   },

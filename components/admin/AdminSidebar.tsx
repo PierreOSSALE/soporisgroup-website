@@ -1,3 +1,4 @@
+//components/admin/AdminSidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -10,16 +11,14 @@ import {
   FolderKanban,
   Wrench,
   FileText,
-  Calendar,
-  HelpCircle,
   Package,
-  MessageSquare,
   Star,
   Menu,
   LogOut,
   ChevronLeft,
 } from "lucide-react";
 import { Route } from "next";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface AdminSidebarProps {
   sidebarOpen: boolean;
@@ -31,11 +30,8 @@ const menuItems = [
   { icon: FolderKanban, label: "Projets", href: "/admin-projects" },
   { icon: Wrench, label: "Services", href: "/admin-services" },
   { icon: FileText, label: "Blog", href: "/admin-blog" },
-  // { icon: Calendar, label: "Rendez-vous", href: "/admin-appointments" },
-  // { icon: HelpCircle, label: "FAQ", href: "/admin-faq" },
   { icon: Package, label: "Packs", href: "/admin-packs" },
   { icon: Star, label: "Témoignages", href: "/admin-testimonials" },
-  // { icon: MessageSquare, label: "Messages", href: "/admin-messages" },
 ];
 
 export default function AdminSidebar({
@@ -43,8 +39,12 @@ export default function AdminSidebar({
   setSidebarOpen,
 }: AdminSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const { signOut, user } = useAuth();
 
+  const handleLogout = async () => {
+    await signOut();
+    pathname === "/auth";
+  };
   const isActive = (href: string) => {
     if (href === "/admin") {
       return pathname === "/admin";
@@ -113,11 +113,11 @@ export default function AdminSidebar({
           {sidebarOpen && (
             <Button
               variant="ghost"
-              className="flex-1 justify-start gap-2"
-              onClick={() => router.push("/")}
+              className="flex-1 justify-start gap-2 text-destructive hover:text-destructive"
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
-              Retour au site
+              Déconnexion
             </Button>
           )}
           <ThemeToggle />

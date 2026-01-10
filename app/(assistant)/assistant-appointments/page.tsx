@@ -1,7 +1,6 @@
-//app/(assistance)/assistant-appointments/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,49 +25,112 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Eye, Check, X, CheckCircle } from "lucide-react";
 import {
-  mockAppointments,
-  AssistantAppointment,
-} from "@/components/data/mockAssistantData";
+  Search,
+  Eye,
+  Check,
+  X,
+  CheckCircle,
+  Download,
+  FileText,
+  Loader2,
+  ArrowUp,
+  ArrowDown,
+  Calendar,
+  Clock,
+  User,
+  Mail,
+  Phone,
+  Building,
+} from "lucide-react";
+import {
+  useAppointmentsAdmin,
+  type Appointment,
+} from "@/hooks/useAppointmentsAdmin";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { useToast } from "@/hooks/use-toast";
 
+// Cookie helpers
+const setCookie = (name: string, value: string, days: number = 30) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )};expires=${expires};path=/`;
+};
+
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2)
+    return decodeURIComponent(parts.pop()!.split(";").shift()!);
+  return null;
+};
+
 export default function AssistantAppointments() {
-  const [appointments, setAppointments] =
-    useState<AssistantAppointment[]>(mockAppointments);
+  const { appointments, loading, updateStatus, deleteAppointment } =
+    useAppointmentsAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAppointment, setSelectedAppointment] =
-    useState<AssistantAppointment | null>(null);
+    useState<Appointment | null>(null);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+  const [lastExportInfo, setLastExportInfo] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Load preferences from cookies on mount
+  useEffect(() => {
+    const savedFilter = getCookie("appointmentsFilter");
+    if (savedFilter) setStatusFilter(savedFilter);
+
+    const lastExport = getCookie("lastAppointmentExport");
+    if (lastExport) setLastExportInfo(lastExport);
+  }, []);
+
+  // Save filter preference to cookie
+  useEffect(() => {
+    setCookie("appointmentsFilter", statusFilter);
+  }, [statusFilter]);
+
+  // Scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      setIsAtBottom(scrollTop + windowHeight >= docHeight - 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToPosition = () => {
+    if (isAtBottom) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
       apt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      apt.email.toLowerCase().includes(searchTerm.toLowerCase());
+      apt.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      apt.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (apt.company &&
+        apt.company.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "all" || apt.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const updateStatus = (id: string, status: AssistantAppointment["status"]) => {
-    setAppointments(
-      appointments.map((apt) => (apt.id === id ? { ...apt, status } : apt))
-    );
-    toast({
-      title: "Statut mis à jour",
-      description: `Le rendez-vous a été marqué comme ${
-        status === "confirmed"
-          ? "confirmé"
-          : status === "cancelled"
-          ? "annulé"
-          : status === "completed"
-          ? "terminé"
-          : "en attente"
-      }.`,
-    });
-  };
-
-  const getStatusColor = (status: AssistantAppointment["status"]) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
@@ -83,7 +145,7 @@ export default function AssistantAppointments() {
     }
   };
 
-  const getStatusLabel = (status: AssistantAppointment["status"]) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case "confirmed":
         return "Confirmé";
@@ -97,6 +159,135 @@ export default function AssistantAppointments() {
         return status;
     }
   };
+
+  const formatDate = (date: Date) => {
+    try {
+      return format(new Date(date), "dd/MM/yyyy", { locale: fr });
+    } catch {
+      return "Date invalide";
+    }
+  };
+
+  const formatDateTime = (date: Date, timeSlot: string) => {
+    try {
+      const dateStr = format(new Date(date), "EEEE d MMMM yyyy", {
+        locale: fr,
+      });
+      return `${dateStr} à ${timeSlot}`;
+    } catch {
+      return `${date} à ${timeSlot}`;
+    }
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = [
+      "Nom",
+      "Email",
+      "Téléphone",
+      "Entreprise",
+      "Service",
+      "Date",
+      "Heure",
+      "Statut",
+      "Message",
+      "Date création",
+    ];
+    const rows = filteredAppointments.map((apt) => [
+      apt.name,
+      apt.email,
+      apt.phone || "",
+      apt.company || "",
+      apt.service,
+      formatDate(apt.date),
+      apt.timeSlot,
+      getStatusLabel(apt.status),
+      apt.message || "",
+      format(new Date(apt.createdAt), "dd/MM/yyyy HH:mm", { locale: fr }),
+    ]);
+
+    const csvContent = [
+      headers.join(";"),
+      ...rows.map((row) =>
+        row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(";")
+      ),
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `rendez-vous_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // Store export info in cookie
+    const exportTime = format(new Date(), "dd/MM/yyyy à HH:mm", { locale: fr });
+    setCookie("lastAppointmentExport", `CSV - ${exportTime}`);
+    setLastExportInfo(`CSV - ${exportTime}`);
+    toast({
+      title: "Export CSV réussi",
+      description: `${filteredAppointments.length} rendez-vous exportés`,
+    });
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.text("Liste des Rendez-vous - Soporis Group", 14, 22);
+    doc.setFontSize(10);
+    doc.text(
+      `Exporté le ${format(new Date(), "dd/MM/yyyy à HH:mm", { locale: fr })}`,
+      14,
+      30
+    );
+    doc.text(`Total: ${filteredAppointments.length} rendez-vous`, 14, 36);
+
+    // Table
+    const tableData = filteredAppointments.map((apt) => [
+      apt.name,
+      apt.email,
+      apt.service,
+      formatDate(apt.date),
+      apt.timeSlot,
+      getStatusLabel(apt.status),
+    ]);
+
+    autoTable(doc, {
+      head: [["Nom", "Email", "Service", "Date", "Heure", "Statut"]],
+      body: tableData,
+      startY: 45,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [26, 54, 93] },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+    });
+
+    doc.save(`rendez-vous_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+
+    // Store export info in cookie
+    const exportTime = format(new Date(), "dd/MM/yyyy à HH:mm", { locale: fr });
+    setCookie("lastAppointmentExport", `PDF - ${exportTime}`);
+    setLastExportInfo(`PDF - ${exportTime}`);
+    toast({
+      title: "Export PDF réussi",
+      description: `${filteredAppointments.length} rendez-vous exportés`,
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -125,6 +316,23 @@ export default function AssistantAppointments() {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex flex-col sm:flex-row items-end gap-2">
+            {lastExportInfo && (
+              <span className="text-xs text-muted-foreground hidden sm:block">
+                Dernier export: {lastExportInfo}
+              </span>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={exportToCSV}>
+                <Download className="h-4 w-4 mr-2" />
+                CSV
+              </Button>
+              <Button variant="outline" onClick={exportToPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Card>
@@ -141,71 +349,86 @@ export default function AssistantAppointments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAppointments.map((apt) => (
-                  <TableRow key={apt.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{apt.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {apt.company}
-                        </p>
-                      </div>
+                {filteredAppointments.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      Aucun rendez-vous trouvé
                     </TableCell>
-                    <TableCell>{apt.service}</TableCell>
-                    <TableCell>{apt.date}</TableCell>
-                    <TableCell>{apt.time}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          apt.status
-                        )}`}
-                      >
-                        {getStatusLabel(apt.status)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedAppointment(apt)}
+                  </TableRow>
+                ) : (
+                  filteredAppointments.map((apt) => (
+                    <TableRow key={apt.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{apt.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {apt.company || apt.email}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{apt.service}</TableCell>
+                      <TableCell>{formatDate(apt.date)}</TableCell>
+                      <TableCell>{apt.timeSlot}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                            apt.status
+                          )}`}
                         >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {apt.status === "pending" && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => updateStatus(apt.id, "confirmed")}
-                              title="Confirmer"
-                            >
-                              <Check className="h-4 w-4 text-green-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => updateStatus(apt.id, "cancelled")}
-                              title="Annuler"
-                            >
-                              <X className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </>
-                        )}
-                        {apt.status === "confirmed" && (
+                          {getStatusLabel(apt.status)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => updateStatus(apt.id, "completed")}
-                            title="Marquer comme terminé"
+                            onClick={() => setSelectedAppointment(apt)}
                           >
-                            <CheckCircle className="h-4 w-4 text-blue-600" />
+                            <Eye className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {apt.status === "pending" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  updateStatus(apt.id, "confirmed")
+                                }
+                                title="Confirmer"
+                              >
+                                <Check className="h-4 w-4 text-green-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  updateStatus(apt.id, "cancelled")
+                                }
+                                title="Annuler"
+                              >
+                                <X className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </>
+                          )}
+                          {apt.status === "confirmed" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => updateStatus(apt.id, "completed")}
+                              title="Marquer comme terminé"
+                            >
+                              <CheckCircle className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -223,39 +446,59 @@ export default function AssistantAppointments() {
             {selectedAppointment && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nom</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <User className="h-3 w-3" /> Nom
+                    </p>
                     <p className="font-medium">{selectedAppointment.name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Entreprise</p>
-                    <p className="font-medium">{selectedAppointment.company}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Building className="h-3 w-3" /> Entreprise
+                    </p>
+                    <p className="font-medium">
+                      {selectedAppointment.company || "-"}
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Mail className="h-3 w-3" /> Email
+                    </p>
                     <p className="font-medium">{selectedAppointment.email}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Téléphone</p>
-                    <p className="font-medium">{selectedAppointment.phone}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Phone className="h-3 w-3" /> Téléphone
+                    </p>
+                    <p className="font-medium">
+                      {selectedAppointment.phone || "-"}
+                    </p>
                   </div>
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Service</p>
                     <p className="font-medium">{selectedAppointment.service}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Date & Heure
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Calendar className="h-3 w-3" /> Date & Heure
                     </p>
-                    <p className="font-medium">
-                      {selectedAppointment.date} à {selectedAppointment.time}
+                    <p className="font-medium flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      {formatDateTime(
+                        selectedAppointment.date,
+                        selectedAppointment.timeSlot
+                      )}
                     </p>
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Message</p>
-                  <p className="font-medium">{selectedAppointment.message}</p>
-                </div>
+                {selectedAppointment.message && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Message</p>
+                    <p className="font-medium border rounded p-2 bg-muted/50">
+                      {selectedAppointment.message}
+                    </p>
+                  </div>
+                )}
                 <div className="flex gap-2 pt-4">
                   {selectedAppointment.status === "pending" && (
                     <>
@@ -299,6 +542,19 @@ export default function AssistantAppointments() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Scroll button */}
+        <Button
+          onClick={scrollToPosition}
+          className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
+          size="icon"
+        >
+          {isAtBottom ? (
+            <ArrowUp className="h-5 w-5" />
+          ) : (
+            <ArrowDown className="h-5 w-5" />
+          )}
+        </Button>
       </div>
     </>
   );

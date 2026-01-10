@@ -1,13 +1,12 @@
-// lib/actions/appointment.actions.ts
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import {
-  appointmentSchema,
-  AppointmentInput,
-} from "@/lib/schema/appointment.schema";
-import { AppointmentStatus } from "@prisma/client";
+import { appointmentSchema } from "@/lib/schema/appointment.schema";
+import { AppointmentStatus } from "@prisma/client"; // <-- Import depuis @prisma/client
+
+import { randomUUID } from "crypto";
+import { sendAppointmentEmail } from "@/lib/email/email-service";
 
 export async function createAppointment(prevState: any, formData: FormData) {
   const rawData = {
@@ -32,26 +31,52 @@ export async function createAppointment(prevState: any, formData: FormData) {
   }
 
   try {
-    await prisma.appointment.create({
+    const cancellationToken = randomUUID();
+
+    const appointment = await prisma.appointment.create({
       data: {
         name: validated.data.name,
         email: validated.data.email,
-        phone: validated.data.phone,
-        company: validated.data.company,
+        phone: validated.data.phone || null,
+        company: validated.data.company || null,
         service: validated.data.service,
         date: new Date(validated.data.date),
         timeSlot: validated.data.timeSlot,
-        message: validated.data.message,
+        message: validated.data.message || null,
         status: validated.data.status,
+        cancellation_token: cancellationToken,
       },
     });
+
+    // Envoyer l'email de confirmation
+    await sendAppointmentEmail(
+      "created",
+      {
+        name: appointment.name,
+        email: appointment.email,
+        date: appointment.date,
+        timeSlot: appointment.timeSlot,
+        service: appointment.service,
+        company: appointment.company || undefined,
+        phone: appointment.phone || undefined,
+        message: appointment.message || undefined,
+        cancellation_token: cancellationToken,
+      },
+      process.env.ADMIN_EMAIL || "contact@soporisgroup.com",
+      process.env.NEXT_PUBLIC_SITE_URL
+    );
+
     revalidatePath("/admin/appointments");
+    revalidatePath("/assistant-appointments");
+    revalidatePath("/assistant-dashboard");
+
     return {
       success: true,
-      message: "Rendez-vous créé avec succès",
+      message: "Demande de rendez-vous envoyée avec succès",
       error: "",
     };
   } catch (error) {
+    console.error("Error creating appointment:", error);
     return {
       success: false,
       message: "",
@@ -60,30 +85,42 @@ export async function createAppointment(prevState: any, formData: FormData) {
   }
 }
 
-export async function updateAppointment(
+export async function updateAppointmentStatus(
   id: string,
-  data: Partial<AppointmentInput>
+  status: AppointmentStatus
 ) {
-  const validated = appointmentSchema.partial().safeParse(data);
-  if (!validated.success) {
-    throw new Error(validated.error.issues[0]?.message || "Données invalides");
-  }
-
   try {
     const appointment = await prisma.appointment.update({
       where: { id },
-      data: {
-        ...validated.data,
-        date: validated.data.date ? new Date(validated.data.date) : undefined,
-      },
+      data: { status },
     });
+
+    // Envoyer un email selon le statut
+    if (status === "confirmed" || status === "cancelled") {
+      await sendAppointmentEmail(
+        status === "confirmed" ? "confirmed" : "cancelled",
+        {
+          name: appointment.name,
+          email: appointment.email,
+          date: appointment.date,
+          timeSlot: appointment.timeSlot,
+          service: appointment.service,
+          company: appointment.company || undefined,
+          phone: appointment.phone || undefined,
+          message: appointment.message || undefined,
+          cancellation_token: appointment.cancellation_token || undefined,
+        },
+        undefined,
+        process.env.NEXT_PUBLIC_SITE_URL
+      );
+    }
+
     revalidatePath("/admin/appointments");
+    revalidatePath("/assistant-appointments");
+    revalidatePath("/assistant-dashboard");
     return appointment;
   } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(error.message);
-    }
-    throw new Error("Erreur lors de la mise à jour du rendez-vous");
+    throw new Error("Erreur lors de la mise à jour du statut du rendez-vous");
   }
 }
 
@@ -93,6 +130,8 @@ export async function deleteAppointment(id: string) {
       where: { id },
     });
     revalidatePath("/admin/appointments");
+    revalidatePath("/assistant-appointments");
+    revalidatePath("/assistant-dashboard");
     return { success: true };
   } catch (error) {
     throw new Error("Erreur lors de la suppression du rendez-vous");
@@ -121,22 +160,6 @@ export async function getAppointmentById(id: string) {
   }
 }
 
-export async function updateAppointmentStatus(
-  id: string,
-  status: "pending" | "confirmed" | "cancelled" | "completed"
-) {
-  try {
-    const appointment = await prisma.appointment.update({
-      where: { id },
-      data: { status },
-    });
-    revalidatePath("/admin/appointments");
-    return appointment;
-  } catch (error) {
-    throw new Error("Erreur lors de la mise à jour du statut du rendez-vous");
-  }
-}
-
 export async function getAppointmentsByStatus(status: AppointmentStatus) {
   try {
     const appointments = await prisma.appointment.findMany({
@@ -154,7 +177,9 @@ export async function getUpcomingAppointments(limit: number = 5) {
   try {
     const appointments = await prisma.appointment.findMany({
       where: {
-        status: { in: ["pending", "confirmed"] },
+        status: {
+          in: [AppointmentStatus.pending, AppointmentStatus.confirmed],
+        },
         date: { gte: new Date() },
       },
       orderBy: { date: "asc" },
@@ -183,10 +208,10 @@ export async function getAppointmentsCountByStatus() {
   } catch (error) {
     console.error("Erreur comptage rendez-vous:", error);
     return {
-      pending: 0,
-      confirmed: 0,
-      cancelled: 0,
-      completed: 0,
+      [AppointmentStatus.pending]: 0,
+      [AppointmentStatus.confirmed]: 0,
+      [AppointmentStatus.cancelled]: 0,
+      [AppointmentStatus.completed]: 0,
     };
   }
 }

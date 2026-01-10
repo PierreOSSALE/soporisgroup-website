@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AssistantNotifications } from "./AssistantNotifications";
 
 export interface AssistantHeaderProps {
   sidebarOpen: boolean;
@@ -34,6 +35,7 @@ export default function AssistantHeader({ sidebarOpen }: AssistantHeaderProps) {
       </div>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
+          <AssistantNotifications />
           <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
             A
           </div>

@@ -1,7 +1,8 @@
+// components/features/AppointmentForm.tsx
 "use client";
 
 import { useFormState } from "react-dom";
-import { createAppointment } from "@/lib/actions/appointment.actions"; // <-- Correction du chemin
+import { createAppointment } from "@/lib/actions/appointment.actions";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 

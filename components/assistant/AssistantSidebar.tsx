@@ -15,6 +15,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { Route } from "next";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface AssistantSidebarProps {
   sidebarOpen: boolean;
@@ -34,7 +35,12 @@ export default function AssistantSidebar({
 }: AssistantSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { signOut, user } = useAuth();
 
+  const handleLogout = async () => {
+    await signOut();
+    pathname === "/auth";
+  };
   const isActive = (href: string) => {
     if (href === "/assistant-assistant") {
       return pathname === "/assistant-assistant";
@@ -104,10 +110,10 @@ export default function AssistantSidebar({
             <Button
               variant="ghost"
               className="flex-1 justify-start gap-2"
-              onClick={() => router.push("/")}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
-              Retour au site
+              Déconnexion
             </Button>
           )}
           <ThemeToggle />

@@ -1,7 +1,8 @@
 //app/(admin)/admin-testimonials/page.tsx
+// app/(admin)/admin-testimonials/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,18 +25,39 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Pencil, Trash2, Star } from "lucide-react";
-import {
-  mockTestimonials,
-  AdminTestimonial,
-} from "@/components/data/mockAdminData";
 import { useToast } from "@/hooks/use-toast";
+import {
+  createTestimonial,
+  updateTestimonial,
+  deleteTestimonial,
+  getTestimonials,
+} from "@/lib/actions/testimonial.actions";
+import { TestimonialInput } from "@/lib/schema/testimonial.schema";
+
+// Type basé sur votre schéma Zod
+type Testimonial = {
+  id: string;
+  author: string;
+  role: string;
+  company: string;
+  content: string;
+  rating: number;
+  avatar?: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export default function AdminTestimonials() {
-  const [testimonials, setTestimonials] =
-    useState<AdminTestimonial[]>(mockTestimonials);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] =
-    useState<AdminTestimonial | null>(null);
+    useState<Testimonial | null>(null);
+  const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(
+    null
+  );
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -44,10 +66,32 @@ export default function AdminTestimonials() {
     company: "",
     content: "",
     rating: 5,
+    avatar: "",
     isActive: true,
   });
 
-  const handleOpenDialog = (testimonial?: AdminTestimonial) => {
+  // Charger les témoignages
+  useEffect(() => {
+    loadTestimonials();
+  }, []);
+
+  const loadTestimonials = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getTestimonials();
+      setTestimonials(data);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les témoignages",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenDialog = (testimonial?: Testimonial) => {
     if (testimonial) {
       setEditingTestimonial(testimonial);
       setFormData({
@@ -56,6 +100,7 @@ export default function AdminTestimonials() {
         company: testimonial.company,
         content: testimonial.content,
         rating: testimonial.rating,
+        avatar: testimonial.avatar || "",
         isActive: testimonial.isActive,
       });
     } else {
@@ -66,52 +111,94 @@ export default function AdminTestimonials() {
         company: "",
         content: "",
         rating: 5,
+        avatar: "",
         isActive: true,
       });
     }
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = () => {
-    if (editingTestimonial) {
-      setTestimonials(
-        testimonials.map((t) =>
-          t.id === editingTestimonial.id ? { ...t, ...formData } : t
-        )
-      );
-      toast({
-        title: "Témoignage modifié",
-        description: "Le témoignage a été mis à jour avec succès.",
-      });
-    } else {
-      const newTestimonial: AdminTestimonial = {
-        id: Date.now().toString(),
+  const handleSubmit = async () => {
+    try {
+      // Préparer les données pour l'envoi
+      const dataToSend: TestimonialInput = {
         ...formData,
+        rating: Number(formData.rating), // S'assurer que c'est un nombre
+        avatar: formData.avatar || undefined, // undefined si vide
       };
-      setTestimonials([...testimonials, newTestimonial]);
+
+      if (editingTestimonial) {
+        // Mise à jour
+        await updateTestimonial(editingTestimonial.id, dataToSend);
+        toast({
+          title: "Succès",
+          description: "Le témoignage a été mis à jour avec succès.",
+        });
+      } else {
+        // Création
+        await createTestimonial(dataToSend);
+        toast({
+          title: "Succès",
+          description: "Le nouveau témoignage a été ajouté avec succès.",
+        });
+      }
+
+      // Recharger les témoignages
+      await loadTestimonials();
+      setIsDialogOpen(false);
+    } catch (error: any) {
       toast({
-        title: "Témoignage créé",
-        description: "Le nouveau témoignage a été ajouté avec succès.",
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
       });
     }
-    setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setTestimonials(testimonials.filter((t) => t.id !== id));
-    toast({
-      title: "Témoignage supprimé",
-      description: "Le témoignage a été supprimé avec succès.",
-      variant: "destructive",
-    });
+  const handleDeleteClick = (id: string) => {
+    setTestimonialToDelete(id);
+    setIsDeleteDialogOpen(true);
   };
 
-  const toggleActive = (id: string) => {
-    setTestimonials(
-      testimonials.map((t) =>
-        t.id === id ? { ...t, isActive: !t.isActive } : t
-      )
-    );
+  const handleConfirmDelete = async () => {
+    if (!testimonialToDelete) return;
+
+    try {
+      await deleteTestimonial(testimonialToDelete);
+      toast({
+        title: "Succès",
+        description: "Le témoignage a été supprimé avec succès.",
+      });
+      // Recharger les témoignages
+      await loadTestimonials();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer le témoignage",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setTestimonialToDelete(null);
+    }
+  };
+
+  const toggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateTestimonial(id, { isActive: !currentStatus });
+      toast({
+        title: "Succès",
+        description: `Témoignage ${!currentStatus ? "activé" : "désactivé"}.`,
+      });
+      // Recharger les témoignages
+      await loadTestimonials();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de modifier le statut",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -122,7 +209,7 @@ export default function AdminTestimonials() {
             key={star}
             className={`h-4 w-4 ${
               star <= rating
-                ? "fill-accent text-accent"
+                ? "fill-yellow-400 text-yellow-400"
                 : "text-muted-foreground"
             }`}
           />
@@ -131,132 +218,186 @@ export default function AdminTestimonials() {
     );
   };
 
-  return (
-    <>
-      <div className="space-y-6">
-        <div className="flex justify-end">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouveau témoignage
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTestimonial
-                    ? "Modifier le témoignage"
-                    : "Nouveau témoignage"}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="author">Nom</Label>
-                    <Input
-                      id="author"
-                      value={formData.author}
-                      onChange={(e) =>
-                        setFormData({ ...formData, author: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Entreprise</Label>
-                    <Input
-                      id="company"
-                      value={formData.company}
-                      onChange={(e) =>
-                        setFormData({ ...formData, company: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Rôle / Poste</Label>
-                  <Input
-                    id="role"
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData({ ...formData, role: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="content">Témoignage</Label>
-                  <Textarea
-                    id="content"
-                    rows={4}
-                    value={formData.content}
-                    onChange={(e) =>
-                      setFormData({ ...formData, content: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Note</Label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() =>
-                          setFormData({ ...formData, rating: star })
-                        }
-                        className="p-1 hover:scale-110 transition-transform"
-                      >
-                        <Star
-                          className={`h-6 w-6 ${
-                            star <= formData.rating
-                              ? "fill-accent text-accent"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="active">Témoignage actif</Label>
-                  <Switch
-                    id="active"
-                    checked={formData.isActive}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, isActive: checked })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Annuler
-                </Button>
-                <Button onClick={handleSubmit}>
-                  {editingTestimonial ? "Enregistrer" : "Créer"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Chargement des témoignages...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau témoignage
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                {editingTestimonial
+                  ? "Modifier le témoignage"
+                  : "Nouveau témoignage"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="author">
+                    Nom <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="author"
+                    value={formData.author}
+                    onChange={(e) =>
+                      setFormData({ ...formData, author: e.target.value })
+                    }
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company">
+                    Entreprise <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="company"
+                    value={formData.company}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
+                    }
+                    placeholder="Entreprise XYZ"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">
+                  Rôle / Poste <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                  placeholder="CEO, Développeur..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="avatar">URL de l'avatar (optionnel)</Label>
+                <Input
+                  id="avatar"
+                  value={formData.avatar}
+                  onChange={(e) =>
+                    setFormData({ ...formData, avatar: e.target.value })
+                  }
+                  placeholder="https://example.com/avatar.jpg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="content">
+                  Témoignage <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="content"
+                  rows={4}
+                  value={formData.content}
+                  onChange={(e) =>
+                    setFormData({ ...formData, content: e.target.value })
+                  }
+                  placeholder="Mon témoignage..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Note <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, rating: star })}
+                      className="p-1 hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        className={`h-6 w-6 ${
+                          star <= formData.rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Note actuelle : {formData.rating}/5
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="active">Témoignage actif</Label>
+                <Switch
+                  id="active"
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isActive: checked })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleSubmit}>
+                {editingTestimonial ? "Enregistrer" : "Créer"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Auteur</TableHead>
+                <TableHead>Témoignage</TableHead>
+                <TableHead>Note</TableHead>
+                <TableHead>Créé le</TableHead>
+                <TableHead>Actif</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {testimonials.length === 0 ? (
                 <TableRow>
-                  <TableHead>Auteur</TableHead>
-                  <TableHead>Témoignage</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead>Actif</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      Aucun témoignage pour le moment.
+                    </p>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {testimonials.map((testimonial) => (
+              ) : (
+                testimonials.map((testimonial) => (
                   <TableRow key={testimonial.id}>
                     <TableCell>
                       <div>
@@ -266,14 +407,23 @@ export default function AdminTestimonials() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-xs">
-                      <p className="line-clamp-2">{testimonial.content}</p>
+                    <TableCell className="max-w-md">
+                      <p className="line-clamp-2 text-sm">
+                        {testimonial.content}
+                      </p>
                     </TableCell>
                     <TableCell>{renderStars(testimonial.rating)}</TableCell>
                     <TableCell>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDate(testimonial.createdAt)}
+                      </p>
+                    </TableCell>
+                    <TableCell>
                       <Switch
                         checked={testimonial.isActive}
-                        onCheckedChange={() => toggleActive(testimonial.id)}
+                        onCheckedChange={() =>
+                          toggleActive(testimonial.id, testimonial.isActive)
+                        }
                       />
                     </TableCell>
                     <TableCell className="text-right">
@@ -288,19 +438,43 @@ export default function AdminTestimonials() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(testimonial.id)}
+                          onClick={() => handleDeleteClick(testimonial.id)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Dialog de confirmation de suppression */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p>
+            Êtes-vous sûr de vouloir supprimer ce témoignage ? Cette action est
+            irréversible.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Supprimer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

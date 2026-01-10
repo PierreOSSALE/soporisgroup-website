@@ -1,68 +1,138 @@
-//app/(assistant/dashbord/page.tsx
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MessageSquare, Clock, CheckCircle } from "lucide-react";
-import {
-  mockAppointments,
-  mockMessages,
-} from "@/components/data/mockAssistantData";
+import { prisma } from "@/lib/prisma";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
-const stats = [
-  {
-    title: "Rendez-vous",
-    value: mockAppointments.length,
-    icon: Calendar,
-    description: `${
-      mockAppointments.filter((a) => a.status === "pending").length
-    } en attente`,
-    trend: "+24%",
-    color: "text-blue-600",
-  },
-  {
-    title: "Messages non lus",
-    value: mockMessages.filter((m) => !m.isRead).length,
-    icon: MessageSquare,
-    description: `${mockMessages.length} messages totaux`,
-    trend: "+5%",
-    color: "text-green-600",
-  },
-  {
-    title: "Confirmés aujourd'hui",
-    value: mockAppointments.filter(
-      (a) =>
-        a.status === "confirmed" &&
-        a.date === new Date().toISOString().split("T")[0]
-    ).length,
-    icon: CheckCircle,
-    description: "Rendez-vous confirmés",
-    trend: "+15%",
-    color: "text-purple-600",
-  },
-  {
-    title: "À traiter urgent",
-    value: mockMessages.filter(
-      (m) => !m.isRead && m.subject.toLowerCase().includes("urgence")
-    ).length,
-    icon: Clock,
-    description: "Messages urgents",
-    trend: "+3",
-    color: "text-red-600",
-  },
-];
+// Fonction pour formater la date
+const formatAppointmentDate = (date: Date) => {
+  return format(date, "yyyy-MM-dd HH:mm:ss", { locale: fr });
+};
 
-export default function AssistantDashboard() {
-  const recentAppointments = mockAppointments
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+// Fonction pour formater la date simple
+const formatSimpleDate = (date: Date) => {
+  return format(date, "yyyy-MM-dd", { locale: fr });
+};
 
-  const recentMessages = mockMessages
-    .filter((m) => !m.isArchived)
-    .sort(
-      (a, b) =>
-        new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()
-    )
-    .slice(0, 5);
+// Fonction pour obtenir le texte du statut
+const getStatusText = (status: string) => {
+  switch (status) {
+    case "pending":
+      return "En attente";
+    case "confirmed":
+      return "Confirmé";
+    case "cancelled":
+      return "Annulé";
+    case "completed":
+      return "Terminé";
+    default:
+      return status;
+  }
+};
+
+// Fonction pour obtenir la classe CSS du statut
+const getStatusClass = (status: string) => {
+  switch (status) {
+    case "confirmed":
+      return "bg-green-100 text-green-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
+    case "completed":
+      return "bg-blue-100 text-blue-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export default async function AssistantDashboard() {
+  // Récupérer les rendez-vous récents (les 5 derniers)
+  const recentAppointments = await prisma.appointment.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  // Récupérer les messages récents (les 5 derniers non archivés)
+  const recentMessages = await prisma.message.findMany({
+    where: { isArchived: false },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  // Calculer les statistiques
+  const totalAppointments = await prisma.appointment.count();
+  const pendingAppointments = await prisma.appointment.count({
+    where: { status: "pending" },
+  });
+
+  const unreadMessages = await prisma.message.count({
+    where: { isRead: false },
+  });
+
+  const totalMessages = await prisma.message.count();
+
+  // Rendez-vous confirmés aujourd'hui
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const confirmedToday = await prisma.appointment.count({
+    where: {
+      status: "confirmed",
+      date: {
+        gte: today,
+        lt: tomorrow,
+      },
+    },
+  });
+
+  // Messages urgents (qui contiennent "urgence" dans le sujet)
+  const urgentMessages = await prisma.message.count({
+    where: {
+      isRead: false,
+      subject: {
+        contains: "urgence",
+        mode: "insensitive",
+      },
+    },
+  });
+
+  const stats = [
+    {
+      title: "Rendez-vous",
+      value: totalAppointments,
+      icon: Calendar,
+      description: `${pendingAppointments} en attente`,
+      trend: "+24%", // Vous pouvez calculer cela si vous avez des données historiques
+      color: "text-blue-600",
+    },
+    {
+      title: "Messages non lus",
+      value: unreadMessages,
+      icon: MessageSquare,
+      description: `${totalMessages} messages totaux`,
+      trend: "+5%", // Vous pouvez calculer cela si vous avez des données historiques
+      color: "text-green-600",
+    },
+    {
+      title: "Confirmés aujourd'hui",
+      value: confirmedToday,
+      icon: CheckCircle,
+      description: "Rendez-vous confirmés",
+      trend: "+15%", // Vous pouvez calculer cela si vous avez des données historiques
+      color: "text-purple-600",
+    },
+    {
+      title: "À traiter urgent",
+      value: urgentMessages,
+      icon: Clock,
+      description: "Messages urgents",
+      trend: "+3", // Vous pouvez calculer cela si vous avez des données historiques
+      color: "text-red-600",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -125,26 +195,14 @@ export default function AssistantDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium">
-                      {apt.date} à {apt.time}
+                      {formatSimpleDate(apt.date)} {apt.timeSlot}
                     </p>
                     <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                        apt.status === "confirmed"
-                          ? "bg-green-100 text-green-800"
-                          : apt.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : apt.status === "cancelled"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusClass(
+                        apt.status
+                      )}`}
                     >
-                      {apt.status === "confirmed"
-                        ? "Confirmé"
-                        : apt.status === "pending"
-                        ? "En attente"
-                        : apt.status === "cancelled"
-                        ? "Annulé"
-                        : "Terminé"}
+                      {getStatusText(apt.status)}
                     </span>
                   </div>
                 </div>
@@ -177,7 +235,7 @@ export default function AssistantDashboard() {
                     <div className="flex items-center justify-between">
                       <p className="font-medium truncate">{msg.name}</p>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(msg.receivedAt).toLocaleDateString("fr-FR")}
+                        {format(msg.createdAt, "dd/MM/yyyy", { locale: fr })}
                       </span>
                     </div>
                     <p className="text-sm font-medium text-muted-foreground truncate">
