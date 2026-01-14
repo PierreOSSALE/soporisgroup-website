@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,9 +17,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, User } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
-export default function SignInPage() {
+export default function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -29,77 +29,62 @@ export default function SignInPage() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const router = useRouter();
   const { toast } = useToast();
-  const supabase = createClient();
+  const supabase = createBrowserSupabaseClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-
-    if (!loginData.email || !loginData.password) {
-      setErrors({ general: "Email et mot de passe requis" });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
 
-      if (error) {
-        setErrors({ general: error.message });
-        toast({
-          title: "Erreur de connexion",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
+      if (error) throw error;
+
+      toast({
+        title: "Connexion réussie",
+        description: "Chargement de votre espace...",
+      });
+
+      // On utilise window.location pour forcer le Proxy à ré-évaluer le domaine
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (authUser) {
+        try {
+          // Appeler une API pour synchroniser et obtenir le rôle
+          const response = await fetch("/api/auth/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (response.ok) {
+            const { role } = await response.json();
+
+            // Rediriger selon le rôle
+            if (role === "admin") {
+              window.location.href = "/dashboard";
+            } else if (role === "assistant") {
+              window.location.href = "/assistant-dashboard";
+            } else {
+              window.location.href = "/";
+            }
+          } else {
+            window.location.href = "/";
+          }
+        } catch (error) {
+          console.error("Erreur lors de la redirection:", error);
+          window.location.href = "/";
+        }
       }
-
-      // Récupérer le rôle de l'utilisateur depuis la base de données
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("role")
-        .eq("email", loginData.email)
-        .single();
-
-      if (userError) {
-        console.error("Erreur récupération rôle:", userError);
-      }
-
-      const userRole = userData?.role || "user";
-
-      // Redirection selon le rôle
-      if (userRole === "admin") {
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue Administrateur !",
-        });
-        router.push("/dashboard");
-      } else if (userRole === "assistant") {
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue Assistant !",
-        });
-        router.push("/assistant-dashboard");
-      } else {
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue !",
-        });
-        router.push("/dashboard");
-      }
-
-      router.refresh();
     } catch (error: any) {
       setErrors({ general: error.message });
       toast({
-        title: "Erreur de connexion",
+        title: "Erreur",
         description: error.message,
         variant: "destructive",
       });
@@ -110,82 +95,33 @@ export default function SignInPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-
-    // Validation simple
-    if (!signupData.name || !signupData.email || !signupData.password) {
-      setErrors({ general: "Tous les champs sont requis" });
-      return;
-    }
-
     if (signupData.password !== signupData.confirmPassword) {
       setErrors({ confirmPassword: "Les mots de passe ne correspondent pas" });
       return;
     }
-
-    if (signupData.password.length < 6) {
-      setErrors({
-        password: "Le mot de passe doit contenir au moins 6 caractères",
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // 1. Créer l'utilisateur dans Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: {
-          data: {
-            name: signupData.name,
-          },
+          data: { name: signupData.name },
+          // Indispensable pour que le lien dans l'email Resend fonctionne
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (authError) {
-        setErrors({ general: authError.message });
-        toast({
-          title: "Erreur d'inscription",
-          description: authError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // 2. Créer l'utilisateur dans notre table users
-      if (authData.user) {
-        const { error: dbError } = await supabase.from("users").insert({
-          email: signupData.email,
-          name: signupData.name,
-          supabaseId: authData.user.id,
-          role: "user", // Par défaut
-        });
-
-        if (dbError) {
-          console.error("Erreur création utilisateur:", dbError);
-        }
-      }
+      if (error) throw error;
 
       toast({
-        title: "Inscription réussie !",
-        description: "Votre compte a été créé. Vous pouvez vous connecter.",
+        title: "Vérifiez vos emails",
+        description: "Un lien de confirmation vous a été envoyé via Resend.",
       });
 
-      // Passer à l'onglet connexion
       setActiveTab("login");
-      setLoginData({
-        email: signupData.email,
-        password: "",
-      });
     } catch (error: any) {
       setErrors({ general: error.message });
-      toast({
-        title: "Erreur d'inscription",
-        description: error.message,
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }

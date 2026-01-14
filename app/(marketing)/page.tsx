@@ -33,14 +33,44 @@ const homePageSchema = {
   },
 };
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService", // Plus précis pour une agence
+  name: "Soporis Group",
+  alternateName: "Soporis Agence Web",
+  description:
+    "Agence web spécialisée en développement sur mesure et UI/UX design à Paris.",
+  url: "https://votre-domaine.com",
+  logo: "https://votre-domaine.com/logo.png",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Paris",
+    addressCountry: "FR",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: "48.8566", // Optionnel : Coordonnées précises
+    longitude: "2.3522",
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: "09:00",
+    closes: "18:00",
+  },
+  sameAs: [
+    "https://www.linkedin.com/company/votre-page",
+    "https://www.instagram.com/votre-page",
+  ],
+};
+
 export default function Home() {
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homePageSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
-      {/* On appelle le composant client qui contient les animations */}
       <HomeClient />
     </>
   );

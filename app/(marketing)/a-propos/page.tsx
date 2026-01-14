@@ -1,39 +1,40 @@
+// app/(marketing)/a-propos/page.tsx
+// app/(marketing)/a-propos/page.tsx
 import { Metadata } from "next";
 import Link from "next/link";
 import { Home, ChevronRight, Users, Target, Award, Heart } from "lucide-react";
 import { AnimatedSection } from "@/components/animations/AnimatedSection";
 
-// 1. Définition des métadonnées pour le SEO (spécifique à cette page)
 export const metadata: Metadata = {
-  title: "À propos de nous | Soporis Group",
+  title: "À propos de Soporis Group | Agence Web Tunis, Paris & Afrique",
   description:
-    "Découvrez l'histoire, les valeurs et la mission de Soporis Group, votre agence web et UI/UX design.",
+    "Découvrez Soporis Group, agence experte en Next.js, Prisma et UI/UX. Basés à Tunis Lafayette, nous accompagnons nos clients en France et dans toute l'Afrique.",
 };
 
 const values = [
   {
     icon: Users,
-    title: "Collaboration",
+    title: "Collaboration Proche",
     description:
-      "Nous travaillons main dans la main avec nos clients pour créer des solutions qui répondent parfaitement à leurs besoins.",
+      "Que vous soyez à Tunis, dans d'autres pays d'Afrique ou à Paris, nous travaillons en totale transparence avec vos équipes via des outils collaboratifs modernes.",
   },
   {
     icon: Target,
-    title: "Excellence",
+    title: "Excellence Technique",
     description:
-      "Chaque projet est une opportunité de repousser les limites et de livrer un travail de qualité exceptionnelle.",
+      "Nous utilisons les technologies les plus performantes comme Next.js/React.js, Prisma, Tailwind CSS, Shadcn/UI et Supabase pour des solutions robustes.",
   },
   {
     icon: Award,
-    title: "Innovation",
+    title: "Expertise UI/UX",
     description:
-      "Nous utilisons les dernières technologies et tendances pour créer des expériences digitales modernes.",
+      "Chaque interface est pensée pour maximiser l'expérience utilisateur et vos taux de conversion, alliant esthétique et performance.",
   },
   {
     icon: Heart,
-    title: "Passion",
+    title: "Engagement",
     description:
-      "Notre passion pour le design et le développement se reflète dans chaque pixel et chaque ligne de code.",
+      "Votre projet est le nôtre. Nous nous engageons sur la qualité du code, la sécurité des données et le respect strict des délais.",
   },
 ];
 
@@ -48,8 +49,7 @@ export default function AboutPage() {
               href="/"
               className="flex items-center gap-1 hover:text-primary transition-colors"
             >
-              <Home className="h-4 w-4" />
-              Accueil
+              <Home className="h-4 w-4" /> Accueil
             </Link>
             <ChevronRight className="h-4 w-4" />
             <span className="text-soporis-navy font-medium">À propos</span>
@@ -57,39 +57,39 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Header */}
+      {/* Header Section */}
       <div className="py-12 bg-background">
         <div className="container mx-auto px-4 text-center">
-          <AnimatedSection className="text-center max-w-2xl mx-auto mb-4">
+          <AnimatedSection className="max-w-2xl mx-auto mb-4">
             <h1 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">
-              À propos de Soporis Group
+              Propulser votre vision digitale
             </h1>
             <div className="w-16 h-1 bg-soporis-gold mx-auto mb-6" />
-            <p className="text-muted-foreground text-md max-w-2xl mx-auto">
-              Une agence web passionnée par la création d'expériences digitales
-              exceptionnelles.
-            </p>{" "}
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Soporis Group est une agence créative spécialisée dans la
+              conception de produits digitaux haute performance.
+            </p>
           </AnimatedSection>
         </div>
       </div>
 
-      {/* Story Section */}
+      {/* Story / Location Section */}
       <section className="py-16 bg-soporis-gray">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl font-bold text-soporis-navy mb-6">
-              Notre histoire
+              Notre Rayonnement
             </h2>
-            <p className="text-muted-foreground text-lg mb-6">
-              Soporis Group est née de la conviction que chaque entreprise
-              mérite une présence digitale à la hauteur de ses ambitions. Notre
-              équipe d'experts en UI/UX design et développement web s'engage à
-              transformer vos idées en expériences digitales mémorables.
+            <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+              Basés au cœur de Tunis, dans le quartier dynamique de
+              **Lafayette**, nous combinons la flexibilité d'une agence agile
+              avec les standards de qualité européens.
             </p>
-            <p className="text-muted-foreground text-lg">
-              Nous combinons créativité, expertise technique et compréhension
-              approfondie des besoins utilisateurs pour créer des solutions web
-              qui performent et convertissent.
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Bien que notre production soit centralisée à Tunis, nous servons
+              nos clients à **Paris, dans tous les pays d'Afrique et dans toute
+              la France** 100% en ligne, garantissant une réactivité optimale et
+              des tarifs compétitifs.
             </p>
           </div>
         </div>
@@ -100,11 +100,10 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl font-bold text-primary mb-4">
-              Nos valeurs
+              Nos Valeurs
             </h2>
             <div className="w-16 h-1 bg-soporis-gold mx-auto" />
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value) => (
               <div
@@ -117,7 +116,7 @@ export default function AboutPage() {
                 <h3 className="font-display text-xl font-semibold text-primary mb-3">
                   {value.title}
                 </h3>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {value.description}
                 </p>
               </div>

@@ -1,3 +1,4 @@
+// app/(marketing)/packs/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Home, ChevronRight } from "lucide-react";
@@ -6,7 +7,7 @@ import { Packs as PacksSection } from "@/components/features/Packs";
 export const metadata: Metadata = {
   title: "Nos Packs & Tarifs | Soporis Group",
   description:
-    "Découvrez nos offres sur mesure pour la création de sites web et le design UI/UX.",
+    "Découvrez nos offres pour la création de sites web et le design UI/UX.",
 };
 
 export default function PacksPage() {

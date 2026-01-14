@@ -1,12 +1,17 @@
 "use client";
 
-import { Facebook, Instagram, Linkedin, Mail } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Mail, Youtube } from "lucide-react";
 import logo from "@/public/img/logo-soporis-light.png";
 import Link from "next/link";
 import Image from "next/image";
 import { Route } from "next";
 import { Separator } from "@/components/ui/separator";
-import { BsWhatsapp } from "react-icons/bs";
+import {
+  IoLogoYoutube,
+  IoLogoFacebook,
+  IoLogoInstagram,
+  IoLogoLinkedin,
+} from "react-icons/io5";
 
 const navigation = [
   { name: "À propos", href: "/a-propos" },
@@ -29,10 +34,14 @@ const legal = [
 ];
 
 const socials = [
-  { name: "whatsapp", icon: BsWhatsapp, href: "#" },
-  { name: "Facebook", icon: Facebook, href: "#" },
-  { name: "Instagram", icon: Instagram, href: "#" },
-  { name: "LinkedIn", icon: Linkedin, href: "#" },
+  {
+    name: "Youtube",
+    icon: IoLogoYoutube,
+    href: "https://www.youtube.com/@SoporisDev",
+  },
+  { name: "Facebook", icon: IoLogoFacebook, href: "#" },
+  { name: "Instagram", icon: IoLogoInstagram, href: "#" },
+  { name: "LinkedIn", icon: IoLogoLinkedin, href: "#" },
 ];
 
 export function Footer() {

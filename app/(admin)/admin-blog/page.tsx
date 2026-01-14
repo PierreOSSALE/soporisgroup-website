@@ -38,16 +38,17 @@ import {
   updateBlogArticle,
   deleteBlogArticle,
 } from "@/lib/actions/blog.actions";
-import { BlogInput } from "@/lib/schema/blog.schema"; // <-- Correction de l'import
+import { BlogInput } from "@/lib/schema/blog.schema";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BlogArticle {
   id: string;
   title: string;
   slug: string;
   excerpt: string;
-  content: string; // Ajout du contenu
+  content: string;
   category: string;
   author: string;
   published: boolean;
@@ -243,248 +244,299 @@ export default function AdminBlog() {
   };
 
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between gap-4">
+    <div className="space-y-6">
+      {/* Titre et description */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Gestion du blog</h1>
+        <p className="text-muted-foreground">
+          Gérez les articles de votre blog, publiez et suivez les performances
+        </p>
+      </div>
+
+      {/* Barre de recherche et bouton */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div className="flex gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher un article..."
+              placeholder="Rechercher par titre, auteur ou catégorie..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full sm:w-80"
             />
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvel article
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              {" "}
-              <DialogHeader>
-                <DialogTitle>
-                  {editingBlog ? "Modifier l'article" : "Nouvel article"}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4  max-h-[70vh] overflow-y-auto">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Titre *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title || ""}
-                    onChange={(e) => handleTitleChange(e.target.value)}
-                    placeholder="Titre de l'article"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug *</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, slug: e.target.value })
-                    }
-                    placeholder="slug-de-l-article"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Doit être en minuscules avec des tirets
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="excerpt">Extrait *</Label>
-                  <Textarea
-                    id="excerpt"
-                    value={formData.excerpt || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, excerpt: e.target.value })
-                    }
-                    placeholder="Court résumé de l'article"
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="content">Contenu *</Label>
-                  <Textarea
-                    id="content"
-                    value={formData.content || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, content: e.target.value })
-                    }
-                    placeholder="Contenu complet de l'article"
-                    rows={5}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Catégorie *</Label>
-                    <Select
-                      value={formData.category || "Design"}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, category: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="author">Auteur *</Label>
-                    <Input
-                      id="author"
-                      value={formData.author || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, author: e.target.value })
-                      }
-                      placeholder="Nom de l'auteur"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="readTime">Temps de lecture</Label>
-                    <Input
-                      id="readTime"
-                      value={formData.readTime || "5 min"}
-                      onChange={(e) =>
-                        setFormData({ ...formData, readTime: e.target.value })
-                      }
-                      placeholder="5 min"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="imageUrl">URL de l'image</Label>
-                    <Input
-                      id="imageUrl"
-                      value={formData.imageUrl || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, imageUrl: e.target.value })
-                      }
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="published"
-                    checked={formData.published || false}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, published: checked })
-                    }
-                  />
-                  <Label htmlFor="published">Publier l'article</Label>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Annuler
-                </Button>
-                <Button onClick={handleSubmit}>
-                  {editingBlog ? "Enregistrer" : "Créer"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {isLoading && <Skeleton className="h-10 w-40" />}
         </div>
-
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-muted-foreground">
-                  Chargement des articles...
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvel article
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {editingBlog ? "Modifier l'article" : "Nouvel article"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+              <div className="space-y-2">
+                <Label htmlFor="title">Titre *</Label>
+                <Input
+                  id="title"
+                  value={formData.title || ""}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  placeholder="Titre de l'article"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug *</Label>
+                <Input
+                  id="slug"
+                  value={formData.slug || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, slug: e.target.value })
+                  }
+                  placeholder="slug-de-l-article"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Doit être en minuscules avec des tirets
                 </p>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Titre</TableHead>
-                    <TableHead>Catégorie</TableHead>
-                    <TableHead>Auteur</TableHead>
-                    <TableHead>Vues</TableHead> {/* <-- Colonne vues */}
-                    <TableHead>Date</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredBlogs.map((blog) => (
-                    <TableRow key={blog.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{blog.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {blog.slug}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs">
-                          {blog.category}
-                        </span>
-                      </TableCell>
-                      <TableCell>{blog.author}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-3 w-3 text-muted-foreground" />
-                          <span className="font-medium">
-                            {blog.views?.toLocaleString() || 0}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatDate(blog.createdAt)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            blog.published
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          }`}
-                        >
-                          {blog.published ? "Publié" : "Brouillon"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(blog)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(blog.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+              <div className="space-y-2">
+                <Label htmlFor="excerpt">Extrait *</Label>
+                <Textarea
+                  id="excerpt"
+                  value={formData.excerpt || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, excerpt: e.target.value })
+                  }
+                  placeholder="Court résumé de l'article"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="content">Contenu *</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, content: e.target.value })
+                  }
+                  placeholder="Contenu complet de l'article (markdown supporté)"
+                  rows={5}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Catégorie *</Label>
+                  <Select
+                    value={formData.category || "Design"}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, category: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="author">Auteur *</Label>
+                  <Input
+                    id="author"
+                    value={formData.author || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, author: e.target.value })
+                    }
+                    placeholder="Nom de l'auteur"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="readTime">Temps de lecture</Label>
+                  <Input
+                    id="readTime"
+                    value={formData.readTime || "5 min"}
+                    onChange={(e) =>
+                      setFormData({ ...formData, readTime: e.target.value })
+                    }
+                    placeholder="5 min"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">URL de l'image</Label>
+                  <Input
+                    id="imageUrl"
+                    value={formData.imageUrl || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, imageUrl: e.target.value })
+                    }
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="published"
+                  checked={formData.published || false}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, published: checked })
+                  }
+                />
+                <Label htmlFor="published">Publier l'article</Label>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleSubmit}>
+                {editingBlog ? "Enregistrer" : "Créer"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-    </>
+
+      {/* Tableau */}
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Titre</TableHead>
+                <TableHead>Catégorie</TableHead>
+                <TableHead>Auteur</TableHead>
+                <TableHead>Vues</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                // Skeleton loading pour le tableau
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Skeleton className="h-3 w-3 rounded-full" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredBlogs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">
+                        Aucun article trouvé
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {searchTerm
+                          ? `Aucun résultat pour "${searchTerm}"`
+                          : "Créez votre premier article pour commencer"}
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredBlogs.map((blog) => (
+                  <TableRow key={blog.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{blog.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {blog.slug}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs">
+                        {blog.category}
+                      </span>
+                    </TableCell>
+                    <TableCell>{blog.author}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3 w-3 text-muted-foreground" />
+                        <span className="font-medium">
+                          {blog.views?.toLocaleString() || 0}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatDate(blog.createdAt)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          blog.published
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        }`}
+                      >
+                        {blog.published ? "Publié" : "Brouillon"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(blog)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(blog.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

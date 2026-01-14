@@ -2,8 +2,8 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import Providers from "@/components/providers";
-import SupabaseProvider from "./providers";
+import { AuthProvider } from "@/lib/auth/provider";
+import { Providers } from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,6 +23,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.soporisgroup.com"),
 };
 
+export const viewport = {
+  themeColor: "#0F172A",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -31,7 +37,9 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased">
-        <SupabaseProvider>{children}</SupabaseProvider>{" "}
+        <AuthProvider>
+          <Providers>{children}</Providers>{" "}
+        </AuthProvider>
       </body>
     </html>
   );

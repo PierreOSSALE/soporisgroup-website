@@ -1,29 +1,15 @@
 // app/providers.tsx
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ReactNode } from "react";
+import { Toaster } from "@/components/ui/toaster";
 
-export default function SupabaseProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
-  const supabase = createClient();
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      router.refresh();
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [router, supabase]);
-
-  return <>{children}</>;
+export function Providers({ children }: { children: ReactNode }) {
+  return (
+    <ThemeProvider defaultTheme="light" storageKey="soporis-theme">
+      {children}
+      <Toaster />
+    </ThemeProvider>
+  );
 }

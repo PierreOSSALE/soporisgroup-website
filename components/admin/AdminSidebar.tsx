@@ -18,8 +18,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { Route } from "next";
-import { useAuth } from "@/hooks/useAuth";
-
+import { useAuth } from "@/lib/auth/provider";
 export interface AdminSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -38,8 +37,8 @@ export default function AdminSidebar({
   sidebarOpen,
   setSidebarOpen,
 }: AdminSidebarProps) {
+  const { signOut } = useAuth();
   const pathname = usePathname();
-  const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
     await signOut();

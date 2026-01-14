@@ -63,131 +63,156 @@ export default function RealisationsClient({ projects }: Props) {
   }
 
   return (
-    <>
+    <main>
       {/* Breadcrumb */}
-      <div className="pt-38 pb-4 bg-soporis-white">
+      <nav aria-label="Breadcrumb" className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
-          <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href="/"
-              className="flex items-center gap-1 hover:text-primary"
-            >
-              <Home className="h-4 w-4" />
-              Accueil
-            </Link>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-soporis-navy font-medium">
+          <ol className="flex items-center justify-center gap-2 text-sm text-muted-foreground list-none p-0">
+            <li className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+              >
+                <Home className="h-4 w-4" /> Accueil
+              </Link>
+              <ChevronRight className="h-4 w-4" />
+            </li>
+            <li className="text-soporis-navy font-medium" aria-current="page">
               Nos réalisations
-            </span>
-          </nav>
+            </li>
+          </ol>
         </div>
-      </div>
+      </nav>
 
-      {/* Header */}
-      <div className="pb-12 pt-4 bg-background text-center">
+      {/* Header - Sémantique <header> */}
+      <header className="pb-12 pt-4 bg-background text-center">
         <AnimatedSection>
           <h1 className="font-display text-4xl font-bold text-primary mb-4">
-            Nos réalisations
+            Nos réalisations{" "}
+            {activeCategory !== "Tout" ? `: ${activeCategory}` : ""}
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Découvrez nos projets innovants.
+          <p className="text-muted-foreground max-w-2xl mx-auto px-4">
+            Découvrez comment nous accompagnons nos clients dans leur
+            transformation digitale à travers des projets innovants et sur
+            mesure.
           </p>
         </AnimatedSection>
-      </div>
+      </header>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap justify-center gap-2 mb-12">
+      {/* Filtres - Sémantique <nav> */}
+      <nav
+        aria-label="Catégories de projets"
+        className="flex flex-wrap justify-center gap-2 mb-12 px-4"
+      >
         {categories.map((category) => (
           <button
             key={category}
-            onClick={() => changeCategory(category)}
+            onClick={() => setActiveCategory(category)}
+            aria-pressed={activeCategory === category}
             className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
               activeCategory === category
-                ? "bg-primary text-primary-foreground"
-                : "bg-card text-muted-foreground border border-border"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-card text-muted-foreground border border-border hover:bg-muted"
             }`}
           >
             {category}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Projects Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full pb-12 px-8 lg:px-30">
+      {/* Grille de projets - Sémantique <section> */}
+      <section
+        className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full pb-12 px-8 lg:px-30"
+        aria-label={`Liste des projets ${activeCategory}`}
+      >
         {isLoading ? (
           Array.from({ length: itemsPerPage }).map((_, i) => (
             <ProjectSkeleton key={i} />
           ))
         ) : currentItems.length === 0 ? (
-          <div className="col-span-full text-center text-muted-foreground">
-            Aucun projet trouvé pour cette catégorie.
+          <div className="col-span-full text-center py-20 text-muted-foreground">
+            Aucun projet trouvé dans la catégorie {activeCategory}.
           </div>
         ) : (
           currentItems.map((project) => (
-            <Link
-              key={project.id}
-              href={`/realisations/${project.slug}` as Route}
-              className="group bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card transition-all duration-300"
-            >
-              <div className="relative aspect-4/3 overflow-hidden">
-                <Image
-                  src={project.imageUrl || "/placeholder.jpg"}
-                  alt={project.title}
-                  fill
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/60 transition-all duration-300 flex items-center justify-center">
-                  <ExternalLink className="h-10 w-10 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <article key={project.id} className="h-full">
+              <Link
+                href={`/realisations/${project.slug}` as Route}
+                className="group flex flex-col h-full bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card transition-all duration-300"
+              >
+                <div className="relative aspect-4/3 overflow-hidden">
+                  <Image
+                    src={project.imageUrl || "/placeholder.jpg"}
+                    alt={`Aperçu du projet ${project.title} - Soporis Group`}
+                    fill
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/40 transition-all duration-300 flex items-center justify-center">
+                    <span className="sr-only">Voir le projet</span>
+                    <ExternalLink className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
                 </div>
-              </div>
-              <div className="p-6">
-                <span className="text-xs font-medium text-soporis-gold uppercase tracking-wider">
-                  {project.category}
-                </span>
-                <h3 className="font-display text-xl font-semibold text-primary mt-2 mb-3">
-                  {project.title}
-                </h3>
-                <p className="text-muted-foreground">{project.subtitle}</p>
-              </div>
-            </Link>
+                <div className="p-6 grow">
+                  <span className="text-xs font-bold text-soporis-gold uppercase tracking-widest">
+                    {project.category}
+                  </span>
+                  <h2 className="font-display text-xl font-semibold text-primary mt-2 mb-3">
+                    {project.title}
+                  </h2>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {project.subtitle}
+                  </p>
+                </div>
+              </Link>
+            </article>
           ))
         )}
-      </div>
+      </section>
 
-      {/* Pagination Controls */}
+      {/* Pagination - Sémantique <nav> */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2 pb-24">
+        <nav
+          aria-label="Pagination"
+          className="flex justify-center items-center gap-2 pb-24"
+        >
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-4 py-2 rounded border border-border bg-card disabled:opacity-50"
+            className="p-2 rounded-md border border-border bg-card disabled:opacity-30 hover:bg-muted transition-colors"
+            aria-label="Page précédente"
           >
             Précédent
           </button>
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-4 py-2 rounded border border-border ${
-                currentPage === i + 1
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                aria-current={currentPage === i + 1 ? "page" : undefined}
+                className={`w-10 h-10 rounded-md border border-border transition-all ${
+                  currentPage === i + 1
+                    ? "bg-primary text-primary-foreground font-bold"
+                    : "bg-card text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-4 py-2 rounded border border-border bg-card disabled:opacity-50"
+            className="p-2 rounded-md border border-border bg-card disabled:opacity-30 hover:bg-muted transition-colors"
+            aria-label="Page suivante"
           >
             Suivant
           </button>
-        </div>
+        </nav>
       )}
-    </>
+    </main>
   );
 }
 

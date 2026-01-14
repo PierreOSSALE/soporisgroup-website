@@ -1,38 +1,25 @@
 // app/(admin)/layout.tsx
 
-"use client";
+import { ReactNode } from "react";
+import { requireRole } from "@/lib/auth/server-auth";
+import AdminLayoutClient from "./AdminLayoutClient";
+import { Metadata } from "next";
 
-import { ReactNode, useState } from "react";
-import AdminSidebar from "@/components/admin/AdminSidebar";
-import AdminHeader from "@/components/admin/AdminHeader";
-import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/ThemeProvider";
-
+export const metadata: Metadata = {
+  title: "Espace Privé | Soporis Group",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
+export default async function AdminLayout({ children }: AdminLayoutProps) {
+  // Vérification côté serveur avant de rendre
+  const currentUser = await requireRole("admin");
   return (
-    <ThemeProvider defaultTheme="light" storageKey="soporis-ui-theme">
-      <div className="min-h-screen bg-muted/30">
-        <AdminSidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
-
-        <main
-          className={cn(
-            "min-h-screen transition-all duration-300",
-            sidebarOpen ? "ml-64" : "ml-20"
-          )}
-        >
-          <AdminHeader sidebarOpen={sidebarOpen} />
-          <div className="p-6">{children}</div>
-        </main>
-      </div>{" "}
-    </ThemeProvider>
+    <AdminLayoutClient currentUser={currentUser}>{children}</AdminLayoutClient>
   );
 }

@@ -1,16 +1,55 @@
-// lib/actions/pack.actions.ts
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { packSchema, PackInput } from "@/lib/schema/pack.schema";
 
+// --- LECTURE ---
+export const getActivePacks = unstable_cache(
+  async () => {
+    return await prisma.pack.findMany({
+      where: { isActive: true },
+      orderBy: [{ order: "asc" }, { priceEUR: "asc" }],
+    });
+  },
+  ["active-packs"],
+  { revalidate: 3600, tags: ["packs"] }
+);
+
+export const getPacks = unstable_cache(
+  async () => {
+    return await prisma.pack.findMany({
+      orderBy: [{ order: "asc" }, { priceEUR: "asc" }],
+    });
+  },
+  ["all-packs"],
+  { revalidate: 3600, tags: ["packs"] }
+);
+
+export const getPackById = unstable_cache(
+  async (id: string) => {
+    return await prisma.pack.findUnique({ where: { id } });
+  },
+  ["pack-by-id"],
+  { revalidate: 3600, tags: ["packs"] }
+);
+
+export const getPopularPacks = unstable_cache(
+  async () => {
+    return await prisma.pack.findMany({
+      where: { isPopular: true, isActive: true },
+      orderBy: { order: "asc" },
+      take: 3,
+    });
+  },
+  ["popular-packs"],
+  { revalidate: 3600, tags: ["packs"] }
+);
+
+// --- ECRITURE ---
 export async function createPack(data: PackInput) {
   const validated = packSchema.safeParse(data);
-  if (!validated.success) {
-    throw new Error(validated.error.issues[0].message);
-  }
-
+  if (!validated.success) throw new Error(validated.error.issues[0].message);
   try {
     const pack = await prisma.pack.create({
       data: {
@@ -18,117 +57,47 @@ export async function createPack(data: PackInput) {
         promoEndDate: validated.data.promoEndDate
           ? new Date(validated.data.promoEndDate)
           : null,
-        originalPrice: validated.data.originalPrice || null,
-        promoLabel: validated.data.promoLabel || null,
       },
     });
-    revalidatePath("/admin/packs");
-    revalidatePath("/packs");
-    revalidatePath("/");
+
+    // Utilisation de "page" comme second argument pour satisfaire Next.js 16
+    revalidateTag("packs", "max");
+    revalidatePath("/", "layout");
+
     return pack;
   } catch (error) {
-    console.error("Erreur création pack:", error);
-    throw new Error("Erreur lors de la création du pack");
+    throw new Error("Erreur création pack");
   }
 }
 
 export async function updatePack(id: string, data: Partial<PackInput>) {
-  const validated = packSchema.partial().safeParse(data);
-  if (!validated.success) {
-    throw new Error(validated.error.issues[0].message);
-  }
-
   try {
     const pack = await prisma.pack.update({
       where: { id },
       data: {
-        ...validated.data,
-        promoEndDate: validated.data.promoEndDate
-          ? new Date(validated.data.promoEndDate)
-          : validated.data.promoEndDate === null
-          ? null
+        ...data,
+        promoEndDate: data.promoEndDate
+          ? new Date(data.promoEndDate)
           : undefined,
-        originalPrice:
-          validated.data.originalPrice !== undefined
-            ? validated.data.originalPrice
-            : undefined,
-        promoLabel:
-          validated.data.promoLabel !== undefined
-            ? validated.data.promoLabel
-            : undefined,
       },
     });
-    revalidatePath("/admin/packs");
-    revalidatePath("/packs");
-    revalidatePath("/");
+
+    revalidateTag("packs", "max");
+    revalidatePath("/", "layout");
+
     return pack;
   } catch (error) {
-    console.error("Erreur mise à jour pack:", error);
-    throw new Error("Erreur lors de la mise à jour du pack");
+    throw new Error("Erreur mise à jour pack");
   }
 }
 
 export async function deletePack(id: string) {
   try {
-    await prisma.pack.delete({
-      where: { id },
-    });
-    revalidatePath("/admin/packs");
-    revalidatePath("/packs");
-    revalidatePath("/");
-  } catch (error) {
-    console.error("Erreur suppression pack:", error);
-    throw new Error("Erreur lors de la suppression du pack");
-  }
-}
+    await prisma.pack.delete({ where: { id } });
 
-export async function getPacks() {
-  try {
-    const packs = await prisma.pack.findMany({
-      orderBy: [{ order: "asc" }, { price: "asc" }],
-    });
-    return packs;
+    revalidateTag("packs", "max");
+    revalidatePath("/", "layout");
   } catch (error) {
-    console.error("Erreur récupération packs:", error);
-    throw new Error("Erreur lors de la récupération des packs");
-  }
-}
-
-export async function getActivePacks() {
-  try {
-    const packs = await prisma.pack.findMany({
-      where: { isActive: true },
-      orderBy: [{ order: "asc" }, { price: "asc" }],
-    });
-    return packs;
-  } catch (error) {
-    console.error("Erreur récupération packs actifs:", error);
-    throw new Error("Erreur lors de la récupération des packs actifs");
-  }
-}
-
-export async function getPackById(id: string) {
-  try {
-    const pack = await prisma.pack.findUnique({
-      where: { id },
-    });
-    return pack;
-  } catch (error) {
-    console.error("Erreur récupération pack:", error);
-    throw new Error("Erreur lors de la récupération du pack");
-  }
-}
-
-export async function getPopularPacks() {
-  try {
-    const packs = await prisma.pack.findMany({
-      where: { isPopular: true, isActive: true },
-      orderBy: { order: "asc" },
-      take: 3,
-    });
-    return packs;
-  } catch (error) {
-    console.error("Erreur récupération packs populaires:", error);
-    throw new Error("Erreur lors de la récupération des packs populaires");
+    throw new Error("Erreur suppression pack");
   }
 }

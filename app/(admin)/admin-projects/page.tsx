@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -42,6 +42,7 @@ import {
   getProjectById,
 } from "@/lib/actions/project.actions";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Définir un type pour l'admin qui correspond aux données retournées par getProjects()
 type AdminProject = {
@@ -351,25 +352,32 @@ export default function AdminProjects() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Chargement des projets...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {/* Titre et description */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Gestion des projets
+        </h1>
+        <p className="text-muted-foreground">
+          Gérez et organisez vos réalisations, modifiez leur statut et
+          mettez-les en vedette
+        </p>
+      </div>
+
+      {/* Barre de recherche et bouton */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un projet..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-full sm:w-80"
-          />
+        <div className="flex gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un projet, client ou catégorie..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full sm:w-80"
+            />
+          </div>
+          {isLoading && <Skeleton className="h-10 w-40" />}
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -569,10 +577,8 @@ export default function AdminProjects() {
         </Dialog>
       </div>
 
+      {/* Tableau */}
       <Card>
-        <CardHeader>
-          <CardTitle>Projets ({filteredProjects.length})</CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -586,90 +592,141 @@ export default function AdminProjects() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProjects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{project.title}</p>
+              {isLoading ? (
+                // Skeleton loading pour le tableau
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="h-4 w-4 rounded-full mx-auto" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredProjects.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">
+                        Aucun projet trouvé
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {project.subtitle}
+                        {searchTerm
+                          ? `Aucun résultat pour "${searchTerm}"`
+                          : "Créez votre premier projet pour commencer"}
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell>{project.client}</TableCell>
-                  <TableCell>{project.category}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          project.status
-                        )}`}
-                      >
-                        {getStatusLabel(project.status)}
-                      </span>
-                      <Select
-                        value={project.status}
-                        onValueChange={(
-                          value: "draft" | "published" | "archived"
-                        ) => handleChangeStatus(project.id, value)}
-                      >
-                        <SelectTrigger className="h-6 w-24">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">Brouillon</SelectItem>
-                          <SelectItem value="published">Publié</SelectItem>
-                          <SelectItem value="archived">Archivé</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        handleToggleFeatured(project.id, !project.featured)
-                      }
-                    >
-                      <Star
-                        className={`h-4 w-4 ${
-                          project.featured
-                            ? "fill-yellow-500 text-yellow-500"
-                            : "text-muted-foreground"
-                        }`}
-                      />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                </TableRow>
+              ) : (
+                filteredProjects.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{project.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {project.subtitle}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{project.client}</TableCell>
+                    <TableCell>{project.category}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                            project.status
+                          )}`}
+                        >
+                          {getStatusLabel(project.status)}
+                        </span>
+                        <Select
+                          value={project.status}
+                          onValueChange={(
+                            value: "draft" | "published" | "archived"
+                          ) => handleChangeStatus(project.id, value)}
+                        >
+                          <SelectTrigger className="h-6 w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Brouillon</SelectItem>
+                            <SelectItem value="published">Publié</SelectItem>
+                            <SelectItem value="archived">Archivé</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() =>
-                          router.push(`/realisations/${project.slug}`)
+                          handleToggleFeatured(project.id, !project.featured)
                         }
                       >
-                        <Eye className="h-4 w-4" />
+                        <Star
+                          className={`h-4 w-4 ${
+                            project.featured
+                              ? "fill-yellow-500 text-yellow-500"
+                              : "text-muted-foreground"
+                          }`}
+                        />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenDialog(project.id)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(project.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            router.push(`/realisations/${project.slug}`)
+                          }
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(project.id)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(project.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

@@ -6,12 +6,19 @@ export const packSchema = z.object({
   description: z
     .string()
     .min(10, "La description doit contenir au moins 10 caractères"),
-  price: z.number().min(0, "Le prix doit être positif"),
-  originalPrice: z
-    .number()
-    .min(0, "Le prix original doit être positif")
-    .optional()
-    .nullable(),
+
+  // Prix Europe
+  priceEUR: z.number().min(0).nullable().optional(),
+  originalPriceEUR: z.number().min(0).nullable().optional(),
+
+  // Prix Tunisie
+  priceTND: z.number().min(0).nullable().optional(),
+  originalPriceTND: z.number().min(0).nullable().optional(),
+
+  // Prix Afrique (FCFA)
+  priceCFA: z.number().min(0).nullable().optional(),
+  originalPriceCFA: z.number().min(0).nullable().optional(),
+
   features: z
     .array(z.string())
     .min(1, "Au moins une fonctionnalité est requise"),

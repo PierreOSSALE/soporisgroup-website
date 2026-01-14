@@ -64,7 +64,7 @@ export async function sendAppointmentEmail(
     case "created":
       // Email au client
       await resend.emails.send({
-        from: "Soporis <contact@soporisgroup.com>",
+        from: "Soporis <contact@emails.soporisgroup.com>",
         to: [appointment.email],
         subject: `Demande de rendez-vous reçue - ${formattedDate}`,
         html: `
@@ -270,7 +270,7 @@ export async function sendReminderEmails() {
       const formattedDate = formatDate(appointment.date);
 
       await resend.emails.send({
-        from: "Soporis <contact@soporisgroup.com>",
+        from: "Soporis <contact@emails.soporisgroup.com>",
         to: [appointment.email],
         subject: `⏰ Rappel : Votre rendez-vous demain - ${formattedDate}`,
         html: `

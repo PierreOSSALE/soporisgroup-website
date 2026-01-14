@@ -1,4 +1,3 @@
-//app/(admin)/admin-testimonials/page.tsx
 // app/(admin)/admin-testimonials/page.tsx
 "use client";
 
@@ -33,6 +32,7 @@ import {
   getTestimonials,
 } from "@/lib/actions/testimonial.actions";
 import { TestimonialInput } from "@/lib/schema/testimonial.schema";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Type basé sur votre schéma Zod
 type Testimonial = {
@@ -226,16 +226,20 @@ export default function AdminTestimonials() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Chargement des témoignages...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {/* Titre et description */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Gestion des témoignages clients
+        </h1>
+        <p className="text-muted-foreground">
+          Gérez les avis et témoignages de vos clients pour renforcer votre
+          crédibilité
+        </p>
+      </div>
+
+      {/* Bouton d'ajout */}
       <div className="flex justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -374,6 +378,7 @@ export default function AdminTestimonials() {
         </Dialog>
       </div>
 
+      {/* Tableau */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -388,12 +393,57 @@ export default function AdminTestimonials() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {testimonials.length === 0 ? (
+              {isLoading ? (
+                // Skeleton loading pour le tableau
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-56" />
+                        <Skeleton className="h-4 w-40" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Skeleton
+                            key={star}
+                            className="h-4 w-4 rounded-full"
+                          />
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-10 rounded-full" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : testimonials.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    <p className="text-muted-foreground">
-                      Aucun témoignage pour le moment.
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">
+                        Aucun témoignage pour le moment.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Commencez par ajouter un premier témoignage client
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (

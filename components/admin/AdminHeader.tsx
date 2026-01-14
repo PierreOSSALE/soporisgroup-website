@@ -1,9 +1,17 @@
+//components/admin/AdminHeader.tsx
 "use client";
 
 import { usePathname } from "next/navigation";
 
 export interface AdminHeaderProps {
   sidebarOpen: boolean;
+  currentUser?: {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+    role: string;
+  } | null;
 }
 
 const menuItems = [
@@ -16,7 +24,10 @@ const menuItems = [
   { label: "Témoignages", href: "/admin-testimonials" },
 ];
 
-export default function AdminHeader({ sidebarOpen }: AdminHeaderProps) {
+export default function AdminHeader({
+  sidebarOpen,
+  currentUser,
+}: AdminHeaderProps) {
   const pathname = usePathname();
 
   const getCurrentPageTitle = () => {
@@ -37,10 +48,30 @@ export default function AdminHeader({ sidebarOpen }: AdminHeaderProps) {
       </div>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
-            A
-          </div>
-          {sidebarOpen && <span className="text-sm font-medium">Admin</span>}
+          {/* Avatar Dynamique */}
+          {currentUser?.image ? (
+            <img
+              src={currentUser.image}
+              alt={currentUser.name || "User"}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
+              {/* Initiale dynamique (A de Admin ou première lettre du nom) */}
+              {currentUser?.name?.[0].toUpperCase() || "U"}
+            </div>
+          )}
+
+          {sidebarOpen && (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium leading-none">
+                {currentUser?.name || "Utilisateur"}
+              </span>
+              <span className="text-[10px] text-muted-foreground uppercase">
+                {currentUser?.role}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </header>

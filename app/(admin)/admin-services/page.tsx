@@ -23,7 +23,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Pencil, Trash2, GripVertical, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   getServices,
@@ -33,6 +33,7 @@ import {
 } from "@/lib/actions/service.actions";
 import type { Service } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -196,24 +197,27 @@ export default function AdminServicesPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* En-tête */}
+      {/* Titre et description */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Gestion des services
+        </h1>
+        <p className="text-muted-foreground">
+          Gérez les services proposés par votre agence pour présenter votre
+          offre
+        </p>
+      </div>
+
+      {/* En-tête avec bouton */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Gestion des services</h1>
-          <p className="text-muted-foreground">
-            Gérez les services proposés par l'agence
-          </p>
-        </div>
+        {isLoading ? (
+          <Skeleton className="h-10 w-48" />
+        ) : (
+          <div className="hidden sm:block"></div>
+        )}
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -270,7 +274,7 @@ export default function AdminServicesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Décrivez le service..."
+                  placeholder="Décrivez le service en détail..."
                   disabled={isSubmitting}
                 />
               </div>
@@ -380,9 +384,6 @@ export default function AdminServicesPage() {
                 Annuler
               </Button>
               <Button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
                 {editingService ? "Enregistrer" : "Créer"}
               </Button>
             </div>
@@ -406,7 +407,47 @@ export default function AdminServicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.length > 0 ? (
+              {isLoading ? (
+                // Skeleton loading pour le tableau
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-6" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-56" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-5 w-12 rounded-full" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="h-6 w-16 rounded-full mx-auto" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : services.length > 0 ? (
                 services
                   .sort((a, b) => a.order - b.order)
                   .map((service) => (
@@ -509,7 +550,7 @@ export default function AdminServicesPage() {
                         Aucun service trouvé
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Créez votre premier service
+                        Créez votre premier service pour commencer
                       </p>
                     </div>
                   </TableCell>

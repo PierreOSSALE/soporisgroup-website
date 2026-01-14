@@ -1,4 +1,3 @@
-// app/(assistant)/assistant-messages/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -34,7 +33,6 @@ import {
   Archive,
   Trash2,
   Reply,
-  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -42,9 +40,9 @@ import {
   markAsRead,
   toggleArchive,
   deleteMessage,
-  getUnreadMessages,
 } from "@/lib/actions/message.actions";
 import type { Message } from "@prisma/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AssistantMessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -166,22 +164,26 @@ export default function AssistantMessagesPage() {
     setSelectedMessage(message);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {/* Titre et description */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Messages des visiteurs
+        </h1>
+        <p className="text-muted-foreground">
+          Gérez et répondez aux messages reçus via le formulaire de contact de
+          votre site
+        </p>
+      </div>
+
+      {/* Barre de recherche et filtres */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher..."
+              placeholder="Rechercher par nom, email ou sujet..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full sm:w-80"
@@ -202,7 +204,7 @@ export default function AssistantMessagesPage() {
             </SelectContent>
           </Select>
         </div>
-        {unreadCount > 0 && (
+        {!isLoading && unreadCount > 0 && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/10 rounded-lg">
             <Mail className="h-4 w-4 text-accent" />
             <span className="text-sm font-medium">
@@ -213,6 +215,7 @@ export default function AssistantMessagesPage() {
         )}
       </div>
 
+      {/* Tableau des messages */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -226,7 +229,35 @@ export default function AssistantMessagesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMessages.length > 0 ? (
+              {isLoading ? (
+                // Skeleton loading
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-56" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredMessages.length > 0 ? (
                 filteredMessages.map((message) => (
                   <TableRow
                     key={message.id}

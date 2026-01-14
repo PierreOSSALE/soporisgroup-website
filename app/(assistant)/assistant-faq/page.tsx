@@ -1,4 +1,3 @@
-// app/(assistant)/assistant-faq/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -40,7 +39,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -50,6 +48,7 @@ import {
   deleteFaq,
 } from "@/lib/actions/faq.actions";
 import type { FAQ } from "@prisma/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AssistantFAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -258,24 +257,25 @@ export default function AssistantFAQPage() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* En-tête */}
+      {/* Titre et description */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Gestion des FAQ</h1>
+        <p className="text-muted-foreground">
+          Gérez les questions fréquentes de votre assistant virtuel pour aider
+          vos visiteurs
+        </p>
+      </div>
+
+      {/* En-tête avec bouton */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Gestion des FAQ</h1>
-          <p className="text-muted-foreground">
-            Gérez les questions fréquentes de l'assistant
-          </p>
-        </div>
+        {!isLoading ? (
+          <div className="hidden sm:block"></div>
+        ) : (
+          <Skeleton className="h-10 w-48" />
+        )}
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -395,9 +395,6 @@ export default function AssistantFAQPage() {
                 Annuler
               </Button>
               <Button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
                 {editingFAQ ? "Enregistrer" : "Créer"}
               </Button>
             </div>
@@ -408,86 +405,115 @@ export default function AssistantFAQPage() {
       {/* Filtres */}
       <Card>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={20}
-              />
-              <Input
-                placeholder="Rechercher une question..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
             </div>
-            <div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toutes les catégories" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category === "all" ? "Toutes les catégories" : category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  size={20}
+                />
+                <Input
+                  placeholder="Rechercher une question ou une réponse..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Toutes les catégories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category === "all"
+                          ? "Toutes les catégories"
+                          : category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="active">Actives</SelectItem>
+                    <SelectItem value="inactive">Inactives</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tous les statuts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="active">Actives</SelectItem>
-                  <SelectItem value="inactive">Inactives</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Résumé */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total FAQ</p>
-              <p className="text-2xl font-bold">{totalItems}</p>
-            </div>
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-bold">?</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">FAQ actives</p>
-              <p className="text-2xl font-bold">
-                {faqs.filter((f) => f.isActive).length}
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 font-bold">✓</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Catégories</p>
-              <p className="text-2xl font-bold">{categories.length - 1}</p>
-            </div>
-            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-              <span className="text-purple-600 font-bold">#</span>
-            </div>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          [1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-12" />
+                </div>
+                <Skeleton className="w-10 h-10 rounded-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total FAQ</p>
+                  <p className="text-2xl font-bold">{totalItems}</p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-bold">?</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">FAQ actives</p>
+                  <p className="text-2xl font-bold">
+                    {faqs.filter((f) => f.isActive).length}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 font-bold">✓</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Catégories</p>
+                  <p className="text-2xl font-bold">{categories.length - 1}</p>
+                </div>
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 font-bold">#</span>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Tableau */}
@@ -504,7 +530,38 @@ export default function AssistantFAQPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentItems.length > 0 ? (
+              {isLoading ? (
+                // Skeleton loading pour le tableau
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-6" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-56" />
+                        <Skeleton className="h-3 w-40" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="h-6 w-16 rounded-full mx-auto" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : currentItems.length > 0 ? (
                 currentItems
                   .sort((a, b) => a.order - b.order)
                   .map((faq) => (
@@ -598,7 +655,7 @@ export default function AssistantFAQPage() {
       </Card>
 
       {/* Pagination */}
-      {totalItems > 0 && (
+      {!isLoading && totalItems > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>

@@ -48,7 +48,7 @@ export function RealisationsClient({ projects, categories }: Props) {
         </AnimatedSection>
 
         {/* Filtres */}
-        <AnimatedSection className="flex flex-wrap justify-center gap-2 mb-12">
+        {/* <AnimatedSection className="flex flex-wrap justify-center gap-2 mb-12">
           {categories.map((category) => (
             <button
               key={category}
@@ -63,7 +63,7 @@ export function RealisationsClient({ projects, categories }: Props) {
               {category}
             </button>
           ))}
-        </AnimatedSection>
+        </AnimatedSection> */}
 
         {/* Grid */}
         <motion.div

@@ -33,7 +33,6 @@ import {
   CheckCircle,
   Download,
   FileText,
-  Loader2,
   ArrowUp,
   ArrowDown,
   Calendar,
@@ -52,6 +51,7 @@ import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Cookie helpers
 const setCookie = (name: string, value: string, days: number = 30) => {
@@ -281,60 +281,80 @@ export default function AssistantAppointments() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-6">
+        {/* Titre et description */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Gestion des rendez-vous
+          </h1>
+          <p className="text-muted-foreground">
+            Gérez les rendez-vous pris par vos clients et suivez leur statut
+          </p>
+        </div>
+
+        {/* Barre de recherche et filtres */}
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="flex gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher..."
+                placeholder="Rechercher par nom, email, service..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full sm:w-80"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous</SelectItem>
-                <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="confirmed">Confirmé</SelectItem>
-                <SelectItem value="completed">Terminé</SelectItem>
-                <SelectItem value="cancelled">Annulé</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col sm:flex-row items-end gap-2">
-            {lastExportInfo && (
-              <span className="text-xs text-muted-foreground hidden sm:block">
-                Dernier export: {lastExportInfo}
-              </span>
+            {loading ? (
+              <Skeleton className="h-10 w-40" />
+            ) : (
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="pending">En attente</SelectItem>
+                  <SelectItem value="confirmed">Confirmé</SelectItem>
+                  <SelectItem value="completed">Terminé</SelectItem>
+                  <SelectItem value="cancelled">Annulé</SelectItem>
+                </SelectContent>
+              </Select>
             )}
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={exportToCSV}>
-                <Download className="h-4 w-4 mr-2" />
-                CSV
-              </Button>
-              <Button variant="outline" onClick={exportToPDF}>
-                <FileText className="h-4 w-4 mr-2" />
-                PDF
-              </Button>
-            </div>
           </div>
+          {loading ? (
+            <div className="flex flex-col sm:flex-row items-end gap-2">
+              <div className="hidden sm:block">
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-end gap-2">
+              {lastExportInfo && (
+                <span className="text-xs text-muted-foreground hidden sm:block">
+                  Dernier export: {lastExportInfo}
+                </span>
+              )}
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={exportToCSV}>
+                  <Download className="h-4 w-4 mr-2" />
+                  CSV
+                </Button>
+                <Button variant="outline" onClick={exportToPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Tableau */}
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -349,7 +369,38 @@ export default function AssistantAppointments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAppointments.length === 0 ? (
+                {loading ? (
+                  // Skeleton loading pour le tableau
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-48" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-40" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredAppointments.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
@@ -544,17 +595,19 @@ export default function AssistantAppointments() {
         </Dialog>
 
         {/* Scroll button */}
-        <Button
-          onClick={scrollToPosition}
-          className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
-          size="icon"
-        >
-          {isAtBottom ? (
-            <ArrowUp className="h-5 w-5" />
-          ) : (
-            <ArrowDown className="h-5 w-5" />
-          )}
-        </Button>
+        {!loading && (
+          <Button
+            onClick={scrollToPosition}
+            className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
+            size="icon"
+          >
+            {isAtBottom ? (
+              <ArrowUp className="h-5 w-5" />
+            ) : (
+              <ArrowDown className="h-5 w-5" />
+            )}
+          </Button>
+        )}
       </div>
     </>
   );

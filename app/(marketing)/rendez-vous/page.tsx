@@ -1,7 +1,7 @@
 // app/(marketing)/rendez-vous/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   Home,
@@ -37,6 +37,7 @@ import { fr } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { createAppointment } from "@/lib/actions/appointment.actions";
+import { FaWhatsapp } from "react-icons/fa";
 
 const meetingTypes = [
   {
@@ -601,7 +602,8 @@ const RendezVousPage = () => {
                   size="lg"
                   className="border-soporis-gold text-soporis-gold hover:bg-soporis-gold hover:text-white"
                 >
-                  💬 WhatsApp
+                  <FaWhatsapp />
+                  WhatsApp
                 </Button>
               </Link>
             </div>

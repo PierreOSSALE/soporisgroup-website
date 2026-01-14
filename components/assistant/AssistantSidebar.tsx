@@ -1,3 +1,4 @@
+//components/assistant/AssistantSidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -15,7 +16,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { Route } from "next";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/lib/auth/provider";
 
 export interface AssistantSidebarProps {
   sidebarOpen: boolean;
@@ -34,8 +35,7 @@ export default function AssistantSidebar({
   setSidebarOpen,
 }: AssistantSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
 
   const handleLogout = async () => {
     await signOut();

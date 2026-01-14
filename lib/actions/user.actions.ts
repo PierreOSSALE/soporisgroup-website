@@ -1,34 +1,49 @@
 // lib/actions/user.actions.ts
 "use server";
 
+"use server";
+
 import { revalidatePath } from "next/cache";
-import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { userSchema, UserInput } from "@/lib/schema/user.schema";
+import { createClient } from "@/lib/supabase/server";
+import {
+  editUserSchema,
+  signupSchema,
+  SignupInput,
+} from "@/lib/schema/user.schema";
 
-export async function createUser(data: UserInput) {
-  const validated = userSchema.safeParse(data);
-  if (!validated.success) {
-    throw new Error(validated.error.issues[0].message);
-  }
+export async function signUp(data: SignupInput) {
+  const supabase = await createClient();
 
-  const hashedPassword = await hash(validated.data.password, 12);
+  // 1. Validation Zod
+  const validated = signupSchema.safeParse(data);
+  if (!validated.success) return { error: "Données invalides" };
 
-  try {
-    const user = await prisma.user.create({
+  // 2. Inscription Supabase
+  // Supabase enverra automatiquement l'email via Resend si configuré
+  const { data: res, error } = await supabase.auth.signUp({
+    email: validated.data.email,
+    password: validated.data.password,
+    options: {
       data: {
-        ...validated.data,
+        full_name: validated.data.name,
+        role: "user", // Rôle par défaut
       },
-    });
-    revalidatePath("/admin/users");
-    return user;
-  } catch (error) {
-    throw new Error("Erreur lors de la création de l'utilisateur");
-  }
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    },
+  });
+
+  if (error) return { error: error.message };
+
+  return {
+    success: "Vérifiez votre boîte mail pour confirmer l'inscription !",
+  };
 }
 
-export async function updateUser(id: string, data: Partial<UserInput>) {
-  const validated = userSchema.partial().safeParse(data);
+// NOTE: On ne crée pas l'utilisateur manuellement ici pour l'auth.
+// On utilise cette fonction uniquement pour l'administration.
+export async function updateUser(id: string, data: any) {
+  const validated = editUserSchema.safeParse(data);
   if (!validated.success) {
     throw new Error(validated.error.issues[0].message);
   }
@@ -36,25 +51,33 @@ export async function updateUser(id: string, data: Partial<UserInput>) {
   try {
     const user = await prisma.user.update({
       where: { id },
-      data: validated.data,
+      data: {
+        name: validated.data.name,
+        email: validated.data.email,
+        role: validated.data.role,
+        isActive: validated.data.isActive,
+        image: validated.data.image,
+      },
     });
     revalidatePath("/admin/users");
     return user;
   } catch (error) {
-    throw new Error("Erreur lors de la mise à jour de l'utilisateur");
+    throw new Error("Erreur lors de la mise à jour");
   }
 }
 
 export async function deleteUser(id: string) {
   try {
-    await prisma.user.delete({
-      where: { id },
-    });
+    // Note: Pour supprimer vraiment un utilisateur, il faudrait aussi
+    // le supprimer de Supabase Auth via adminApi si nécessaire.
+    await prisma.user.delete({ where: { id } });
     revalidatePath("/admin/users");
   } catch (error) {
-    throw new Error("Erreur lors de la suppression de l'utilisateur");
+    throw new Error("Erreur lors de la suppression");
   }
 }
+
+// ... getUsers et getUserById sont corrects dans ton code
 
 export async function getUsers() {
   try {
@@ -65,7 +88,6 @@ export async function getUsers() {
         email: true,
         name: true,
         role: true,
-        avatar: true,
         isActive: true,
         createdAt: true,
       },
