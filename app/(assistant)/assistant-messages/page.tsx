@@ -157,11 +157,12 @@ export default function AssistantMessagesPage() {
     }
   };
 
-  const openMessage = async (message: Message) => {
-    if (!message.isRead) {
-      await handleMarkAsRead(message.id);
+  const openMessage = async (msg: Message) => {
+    setSelectedMessage(msg);
+    if (!msg.isRead) {
+      await markAsRead(msg.id);
+      loadMessages();
     }
-    setSelectedMessage(message);
   };
 
   return (
