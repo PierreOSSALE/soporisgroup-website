@@ -1,10 +1,11 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { usePathname } from "next/navigation";
 
 interface AdminLayoutClientProps {
   children: ReactNode;
@@ -15,7 +16,14 @@ export default function AdminLayoutClient({
   children,
   currentUser,
 }: AdminLayoutClientProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // desktop
+  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay
+  const pathname = usePathname();
+
+  // Ferme la sidebar mobile lors d'un changement de page
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="soporis-ui-theme">
@@ -23,15 +31,20 @@ export default function AdminLayoutClient({
         <AdminSidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
         />
 
         <main
           className={cn(
             "min-h-screen transition-all duration-300",
-            sidebarOpen ? "ml-64" : "ml-20"
+            sidebarOpen ? "md:ml-64" : "md:ml-20"
           )}
         >
-          <AdminHeader sidebarOpen={sidebarOpen} currentUser={currentUser} />
+          <AdminHeader
+            currentUser={currentUser}
+            setMobileOpen={setMobileOpen}
+          />
           <div className="p-6">{children}</div>
         </main>
       </div>

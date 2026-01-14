@@ -3,9 +3,10 @@
 
 import { usePathname } from "next/navigation";
 import { AssistantNotifications } from "./AssistantNotifications";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface AssistantHeaderProps {
-  sidebarOpen: boolean;
   currentUser?: {
     id: string;
     email: string;
@@ -13,9 +14,9 @@ export interface AssistantHeaderProps {
     image?: string | null;
     role: string;
   } | null;
+  setMobileOpen?: (open: boolean) => void;
 }
 
-// URLs corrigées pour correspondre à ton arborescence réelle
 const menuItems = [
   { label: "Dashboard", href: "/assistant-dashboard" },
   { label: "Rendez-vous", href: "/assistant-appointments" },
@@ -24,14 +25,13 @@ const menuItems = [
 ];
 
 export default function AssistantHeader({
-  sidebarOpen,
   currentUser,
+  setMobileOpen = () => {},
 }: AssistantHeaderProps) {
   const pathname = usePathname();
 
   const getCurrentPageTitle = () => {
     const currentItem = menuItems.find((item) => {
-      // Vérification exacte pour le dashboard, sinon vérification par préfixe
       if (item.href === "/assistant-dashboard") {
         return pathname === "/assistant-dashboard";
       }
@@ -43,6 +43,18 @@ export default function AssistantHeader({
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-6">
+      {/* Mobile menu button */}
+      <div className="md:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
+
       <div className="flex-1">
         <h1 className="text-lg font-semibold">{getCurrentPageTitle()}</h1>
       </div>
@@ -52,7 +64,6 @@ export default function AssistantHeader({
           <AssistantNotifications />
 
           <div className="flex items-center gap-3 pl-2 border-l border-border">
-            {/* Avatar Dynamique */}
             {currentUser?.image ? (
               <img
                 src={currentUser.image}
@@ -61,22 +72,18 @@ export default function AssistantHeader({
               />
             ) : (
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-                {/* Initial du nom ou 'A' par défaut */}
                 {currentUser?.name ? currentUser.name[0].toUpperCase() : "A"}
               </div>
             )}
 
-            {/* Informations textuelles visibles si la sidebar est ouverte */}
-            {sidebarOpen && (
-              <div className="flex flex-col">
-                <span className="text-sm font-medium leading-none">
-                  {currentUser?.name || "Assistant"}
-                </span>
-                <span className="text-[10px] text-muted-foreground uppercase mt-1">
-                  Soporis Staff
-                </span>
-              </div>
-            )}
+            <div className="hidden sm:flex flex-col">
+              <span className="text-sm font-medium leading-none">
+                {currentUser?.name || "Assistant"}
+              </span>
+              <span className="text-[10px] text-muted-foreground uppercase mt-1">
+                Soporis Staff
+              </span>
+            </div>
           </div>
         </div>
       </div>
