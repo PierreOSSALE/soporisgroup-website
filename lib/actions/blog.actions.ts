@@ -87,14 +87,19 @@ export async function getPublishedBlogArticles() {
 export async function getBlogArticleBySlug(slug: string) {
   try {
     const article = await prisma.blogArticle.findUnique({
-      where: { slug },
+      where: { slug, published: true },
     });
+
+    if (!article) {
+      throw new Error("Article non trouvé");
+    }
+
     return article;
   } catch (error) {
+    console.error(`Erreur pour le slug ${slug}:`, error);
     throw new Error("Erreur lors de la récupération de l'article");
   }
 }
-
 export async function incrementBlogViews(id: string) {
   try {
     const article = await prisma.blogArticle.update({

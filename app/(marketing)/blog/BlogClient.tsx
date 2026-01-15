@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Route } from "next";
 import type { BlogArticle } from "@prisma/client";
+import Image from "next/image"; // Ajoute cet import
 
 type Props = {
   articles: BlogArticle[];
@@ -16,7 +17,7 @@ type Props = {
 
 export default function BlogClient({ articles }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // On passe à 6 pour un meilleur remplissage visuel
+  const itemsPerPage = 6;
 
   const totalItems = articles?.length ?? 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -63,24 +64,31 @@ export default function BlogClient({ articles }: Props) {
           {currentItems.length > 0 ? (
             <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {currentItems.map((article) => (
-                <Link key={article.id} href={`/blog/${article.slug}` as Route}>
-                  <article className="group bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card transition-all duration-300 h-full">
-                    <div className="relative aspect-16/10 overflow-hidden">
+                <Link
+                  key={article.id}
+                  href={`/blog/${article.slug}` as Route}
+                  className="block h-full"
+                >
+                  <article className="group bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card transition-all duration-300 h-full flex flex-col">
+                    <div className="relative aspect-16/10 overflow-hidden shrink-0">
                       {article.imageUrl && (
-                        <img
+                        <Image
                           src={article.imageUrl}
                           alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          quality={85}
                         />
                       )}
-                      <div className="absolute top-4 left-4">
+                      <div className="absolute top-4 left-4 z-10">
                         <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
                           {article.category}
                         </span>
                       </div>
+                      <div className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
-                    <div className="p-6">
+                    <div className="p-6 flex-1 flex flex-col">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
@@ -96,7 +104,7 @@ export default function BlogClient({ articles }: Props) {
                       <h3 className="font-display text-xl font-semibold text-primary mb-3 group-hover:text-soporis-gold transition-colors line-clamp-2">
                         {article.title}
                       </h3>
-                      <p className="text-muted-foreground text-sm line-clamp-3">
+                      <p className="text-muted-foreground text-sm line-clamp-3 flex-1">
                         {article.excerpt}
                       </p>
                     </div>

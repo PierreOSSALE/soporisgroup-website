@@ -1,4 +1,4 @@
-//app/(marketing)/blog/[slug]/page.tsx
+// app/(marketing)/blog/[slug]/page.tsx
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,30 +8,80 @@ import { AnimatedSection } from "@/components/animations/AnimatedSection";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ViewIncrementer } from "@/components/features/blog/ViewIncrementer";
+import Image from "next/image";
+import { Metadata } from "next";
 
 import type { BlogArticle } from "@prisma/client";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  return prisma.blogArticle.findMany({
+  const articles = await prisma.blogArticle.findMany({
     where: { published: true },
     select: { slug: true },
   });
+
+  console.log(
+    "Generating static params for blog articles:",
+    articles.map((a) => a.slug)
+  );
+
+  return articles.map((article) => ({
+    slug: article.slug,
+  }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params; // Désemballer le params
+  const article = await prisma.blogArticle.findUnique({
+    where: { slug, published: true },
+  });
+
+  if (!article) {
+    return {
+      title: "Article non trouvé",
+    };
+  }
+
+  return {
+    title: `${article.title} | Soporis Group`,
+    description: article.excerpt,
+    openGraph: {
+      title: article.title,
+      description: article.excerpt,
+      images: article.imageUrl ? [article.imageUrl] : [],
+    },
+  };
 }
 
 export default async function BlogArticlePage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const article: BlogArticle | null = await prisma.blogArticle.findFirst({
-    where: { slug: params.slug, published: true },
+  const { slug } = await params; // Désemballer le params
+  console.log("Fetching article for slug:", slug);
+
+  const article: BlogArticle | null = await prisma.blogArticle.findUnique({
+    where: {
+      slug,
+      published: true,
+    },
   });
 
-  if (!article) return notFound();
+  console.log("Article found:", article?.title);
+
+  if (!article) {
+    console.log("Article not found for slug:", slug);
+    return notFound();
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <ViewIncrementer articleId={article.id} />
+
       {/* Breadcrumb */}
       <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4 max-w-5xl">
@@ -81,65 +131,29 @@ export default async function BlogArticlePage({
               </div>
             </div>
 
-            {/* Featured Image - Matching Rounded Corners */}
+            {/* Featured Image - Utilise Image de Next.js */}
             {article.imageUrl && (
               <div className="relative aspect-21/9 w-full rounded-2xl md:rounded-[2.5rem] overflow-hidden mb-12 shadow-sm border border-slate-100">
-                <img
+                <Image
                   src={article.imageUrl}
                   alt={article.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+                  priority
+                  quality={90}
                 />
               </div>
             )}
 
             {/* Dynamic Content Parsing */}
             <div className="max-w-3xl">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#1a2b4b] mb-6">
-                {article.title}
-              </h2>
-              <div className="space-y-6">
-                {article.content.split("\n").map((line: string, i: number) => {
-                  const p = line.trim();
-                  if (!p) return <div key={i} className="h-2" />;
-
-                  // Detection des titres de sections (ex: "1. Design...")
-                  if (
-                    /^\d+\.|\b(Conclusion|Comprendre|Techniques|Les éléments|Les erreurs)\b/.test(
-                      p
-                    )
-                  ) {
-                    return (
-                      <h3
-                        key={i}
-                        className="text-xl md:text-2xl font-bold text-[#1a2b4b] mt-10 mb-4"
-                      >
-                        {p}
-                      </h3>
-                    );
-                  }
-
-                  // Detection des listes
-                  if (p.startsWith("- ")) {
-                    return (
-                      <li
-                        key={i}
-                        className="ml-6 list-disc text-slate-600 text-lg leading-relaxed"
-                      >
-                        {p.slice(2)}
-                      </li>
-                    );
-                  }
-
-                  // Paragraphes normaux
-                  return (
-                    <p
-                      key={i}
-                      className="text-lg text-slate-600 leading-relaxed"
-                    >
-                      {p}
-                    </p>
-                  );
-                })}
+              <div className="prose prose-lg max-w-none">
+                {/* Si le content est en markdown, tu pourrais utiliser un parser ici */}
+                <div
+                  className="text-lg text-slate-600 leading-relaxed whitespace-pre-line"
+                  dangerouslySetInnerHTML={{ __html: article.content }}
+                />
               </div>
 
               {/* Back Button */}

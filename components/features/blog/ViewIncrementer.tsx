@@ -4,10 +4,19 @@
 import { useEffect } from "react";
 import { incrementBlogViews } from "@/lib/actions/blog.actions";
 
-export function ViewIncrementer({ articleId }: { articleId: string }) {
+interface ViewIncrementerProps {
+  articleId: string;
+}
+
+export function ViewIncrementer({ articleId }: ViewIncrementerProps) {
   useEffect(() => {
-    incrementBlogViews(articleId);
+    // Incrémente les vues après un délai pour éviter les doublons
+    const timer = setTimeout(() => {
+      incrementBlogViews(articleId);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [articleId]);
 
-  return null;
+  return null; // Ce composant ne rend rien
 }
