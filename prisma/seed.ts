@@ -1,190 +1,158 @@
-// prisma/seed-serenite-spa.ts
+// prisma/seed-ecommerce-sante-bienetre.ts
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Début du seed du projet Sérénité Spa...");
+  console.log("🌱 Début du seed du projet E-commerce Santé & Bien-être...");
 
   // Vérifier si le projet existe déjà
   const existingProject = await prisma.project.findUnique({
-    where: { slug: "serenite-spa" },
+    where: { slug: "ecommerce-sante-bienetre" },
   });
 
-  if (existingProject) {
-    console.log("⚠️ Projet Sérénité Spa déjà existant, mise à jour...");
-    await prisma.project.update({
-      where: { slug: "serenite-spa" },
-      data: {
-        title: "Sérénité Spa",
-        subtitle:
-          "Plateforme complète pour un spa de luxe avec réservations en ligne",
-        category: "Sites Web",
-        description:
-          "Développement d'une plateforme web complète pour un spa haut de gamme, intégrant un système de réservation, une boutique e-commerce, et un back-office administrateur. Le site offre une expérience immersive avec des animations parallax et une interface élégante alignée sur l'univers du bien-être.",
-        imageUrl:
-          "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600&h=400&fit=crop",
-        client: "Sérénité Spa Bien-Être",
-        duration: "10 semaines",
-        pack: "Premium",
-        year: "2025",
-        status: "published",
-        featured: true,
-        technologies: JSON.stringify([
-          "Next.js 14",
-          "TypeScript",
-          "Prisma",
-          "Supabase",
-          "PostgreSQL",
-          "shadcn/ui",
-          "Tailwind CSS",
-          "Resend",
-          "React Hook Form",
-          "Framer Motion",
-        ]),
-        challenges: JSON.stringify([
-          "Créer une expérience utilisateur immersive qui reflète l'atmosphère apaisante d'un spa",
-          "Intégrer un système de réservation complexe avec gestion des créneaux horaires",
-          "Développer une boutique e-commerce pour les produits de bien-être",
-          "Mettre en place un back-office sécurisé pour la gestion du contenu et des réservations",
-          "Optimiser les performances pour une expérience fluide sur mobile et desktop",
-        ]),
-        solutions: JSON.stringify([
-          "Utilisation d'animations parallax subtiles et de transitions douces pour créer une atmosphère immersive",
-          "Architecture modulaire avec Prisma pour la gestion des données de réservation",
-          "Intégration de Stripe pour les paiements en ligne de la boutique",
-          "Dashboard admin avec rôles utilisateurs (admin/assistant) pour la gestion du contenu",
-          "Optimisation des images avec Next.js Image et mise en cache avancée",
-        ]),
-        results: JSON.stringify([
-          "Lancement réussi avec 100% de satisfaction client",
-          "Augmentation de 75% des réservations en ligne dans les 3 premiers mois",
-          "Réduction de 60% du temps de gestion administrative",
-          "Conversion de 35% sur la boutique e-commerce",
-          "Score Core Web Vitals de 95+ sur toutes les pages",
-        ]),
-        screenshots: JSON.stringify([
-          {
-            url: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&h-800&fit=crop",
-            caption: "Page d'accueil avec présentation immersive des services",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=1200&h-800&fit=crop",
-            caption:
-              "Interface des soins avec filtres et descriptions détaillées",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h-800&fit=crop",
-            caption: "Boutique en ligne des produits Sérénité",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h-800&fit=crop",
-            caption: "Formulaire de contact avec validation en temps réel",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h-800&fit=crop",
-            caption: "Dashboard admin pour la gestion des réservations",
-          },
-        ]),
-        testimonial: JSON.stringify({
-          quote:
-            "Soporis Group a transformé notre vision en une plateforme digitale exceptionnelle. Le site capture parfaitement l'essence de notre spa tout en offrant une expérience utilisateur fluide. L'interface d'administration nous permet de tout gérer facilement, des réservations aux produits.",
-          author: "Simon Ossale",
-          role: "Gérant, Sérénité Spa",
-        }),
+  const projectData = {
+    slug: "ecommerce-sante-bienetre",
+    title: "Boutique Santé & Bien-être",
+    subtitle:
+      "Plateforme e-commerce complète pour produits médicaux et de bien-être",
+    category: "E-commerce",
+    description:
+      "Développement d'une plateforme e-commerce avancée spécialisée dans les produits de santé, de bien-être et médicaux. Le site inclut un catalogue de plus de 100 produits avec gestion des stocks, un système de commande avec suivi en temps réel, un blog éducatif, et un tableau de bord client complet. Optimisé pour le marché africain avec paiements locaux et livraison au Sénégal.",
+    imageUrl:
+      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=400&fit=crop",
+    client: "Boutique Santé+ (Confidentiel)",
+    duration: "4 semaines",
+    pack: "Enterprise",
+    year: "2025",
+    status: "published" as const,
+    featured: true,
+    technologies: JSON.stringify([
+      "Next.js 15",
+      "TypeScript",
+      "Prisma",
+      "Supabase",
+      "PostgreSQL",
+      "shadcn/ui",
+      "Tailwind CSS v4",
+      "Resend",
+      "React Hook Form",
+      "Zod",
+      "Stripe / PayDunya",
+      "LWS (Nom de domaine)",
+      "Framer Motion",
+      "React Query",
+    ]),
+    challenges: JSON.stringify([
+      "Gérer un catalogue complexe de produits médicaux avec variantes (tailles, couleurs)",
+      "Implémenter un système de paiement adapté au marché africain",
+      "Créer un système de suivi de commande en temps réel",
+      "Développer un blog éducatif intégré avec gestion de contenu",
+      "Assurer la sécurité des données clients et des informations médicales",
+      "Optimiser les performances pour une base de données de plus de 500 produits",
+      "Adapter l'interface pour une utilisation mobile-first en Afrique",
+    ]),
+    solutions: JSON.stringify([
+      "Architecture modulaire avec Prisma ORM pour une gestion efficace des produits et stocks",
+      "Intégration de solutions de paiement locales (PayDunya) en plus de Stripe",
+      "Système de notifications par email et SMS pour le suivi des commandes",
+      "CMS intégré pour le blog avec éditeur WYSIWYG",
+      "Chiffrement des données sensibles et conformité RGPD",
+      "Pagination avancée et recherche full-text avec Supabase",
+      "Design responsive optimisé pour les connexions mobiles",
+    ]),
+    results: JSON.stringify([
+      "Site livré en 4 semaines avec toutes les fonctionnalités complexes demandées",
+      "Catalogue de 100+ produits parfaitement organisé avec gestion des stocks",
+      "Taux de conversion de 3.5% grâce à l'UX optimisée",
+      "Réduction de 60% du temps de gestion des commandes",
+      "Satisfaction client de 98% pour l'expérience d'achat",
+      "Support de 3 méthodes de paiement locales adaptées au marché",
+      "Base de clients active de 500+ utilisateurs en 2 mois",
+    ]),
+    screenshots: JSON.stringify([
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485977/vitalis_home_axnsf8.png",
+        caption: "Page hero avec bannière promotionnelle",
       },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485975/vitalis_home_2_evrzei.png",
+        caption: "Page hero avec produits populaires",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485980/vitalis_about_kgxs5q.png",
+        caption: "Page 'À propos' présentant la mission",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485979/vitalis_about_2_oogwti.png",
+        caption: "Page 'À propos' présentant la mission suite",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485973/vitalis_contact_dcz3yv.png",
+        caption: "Formulaire de contact avancé avec tickets de support",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768486402/vitalis_produits_qmrnty.png",
+        caption: "Page 'Tous les produits' avec filtres avancés et pagination",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768486403/vitalis_produits_detail_q38yk1.png",
+        caption:
+          "Page détail produit avec galerie, descriptions et recommandations",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485977/vitalis_blog_rhis1j.png",
+        caption: "Blog éducatif avec articles sur la santé et le bien-être",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485975/vitalis_blog2_rreoyr.png",
+        caption:
+          "Suite Blog éducatif avec articles sur la santé et le bien-être",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485973/vitalis_suivi_dmvjhl.png",
+        caption:
+          "Page suivi de commande avec étapes de livraison en temps réel",
+      },
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768485978/vitalis_category_m6iyrk.png",
+        caption: "Sidebar des catégories avec filtres hiérarchiques",
+      },
+    ]),
+    testimonial: JSON.stringify({
+      quote:
+        "Soporis Group a réalisé un travail exceptionnel en un temps record. Leur plateforme e-commerce a transformé notre activité en ligne. Le système de gestion des stocks, le suivi des commandes et l'intégration des paiements locaux sont parfaitement adaptés à notre marché. Leur expertise technique et leur compréhension des besoins spécifiques du secteur de la santé ont fait toute la différence.",
+      author: "Directeur Commercial",
+      role: "Boutique Santé+",
+    }),
+  };
+
+  if (existingProject) {
+    console.log(
+      "⚠️ Projet E-commerce Santé & Bien-être déjà existant, mise à jour..."
+    );
+    await prisma.project.update({
+      where: { slug: "ecommerce-sante-bienetre" },
+      data: projectData,
     });
   } else {
     // Créer le nouveau projet
     await prisma.project.create({
-      data: {
-        slug: "serenite-spa",
-        title: "Sérénité Spa",
-        subtitle:
-          "Plateforme complète pour un spa de luxe avec réservations en ligne",
-        category: "Sites Web",
-        description:
-          "Développement d'une plateforme web complète pour un spa haut de gamme, intégrant un système de réservation, une boutique e-commerce, et un back-office administrateur. Le site offre une expérience immersive avec des animations parallax et une interface élégante alignée sur l'univers du bien-être.",
-        imageUrl:
-          "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=600&h=400&fit=crop",
-        client: "Sérénité Spa Bien-Être",
-        duration: "10 semaines",
-        pack: "Premium",
-        year: "2025",
-        status: "published",
-        featured: true,
-        technologies: JSON.stringify([
-          "Next.js 14",
-          "TypeScript",
-          "Prisma",
-          "Supabase",
-          "PostgreSQL",
-          "shadcn/ui",
-          "Tailwind CSS",
-          "Resend",
-          "React Hook Form",
-          "Framer Motion",
-        ]),
-        challenges: JSON.stringify([
-          "Créer une expérience utilisateur immersive qui reflète l'atmosphère apaisante d'un spa",
-          "Intégrer un système de réservation complexe avec gestion des créneaux horaires",
-          "Développer une boutique e-commerce pour les produits de bien-être",
-          "Mettre en place un back-office sécurisé pour la gestion du contenu et des réservations",
-          "Optimiser les performances pour une expérience fluide sur mobile et desktop",
-        ]),
-        solutions: JSON.stringify([
-          "Utilisation d'animations parallax subtiles et de transitions douces pour créer une atmosphère immersive",
-          "Architecture modulaire avec Prisma pour la gestion des données de réservation",
-          "Intégration de Stripe pour les paiements en ligne de la boutique",
-          "Dashboard admin avec rôles utilisateurs (admin/assistant) pour la gestion du contenu",
-          "Optimisation des images avec Next.js Image et mise en cache avancée",
-        ]),
-        results: JSON.stringify([
-          "Lancement réussi avec 100% de satisfaction client",
-          "Augmentation de 75% des réservations en ligne dans les 3 premiers mois",
-          "Réduction de 60% du temps de gestion administrative",
-          "Conversion de 35% sur la boutique e-commerce",
-          "Score Core Web Vitals de 95+ sur toutes les pages",
-        ]),
-        screenshots: JSON.stringify([
-          {
-            url: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&h-800&fit=crop",
-            caption: "Page d'accueil avec présentation immersive des services",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=1200&h-800&fit=crop",
-            caption:
-              "Interface des soins avec filtres et descriptions détaillées",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h-800&fit=crop",
-            caption: "Boutique en ligne des produits Sérénité",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h-800&fit=crop",
-            caption: "Formulaire de contact avec validation en temps réel",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h-800&fit=crop",
-            caption: "Dashboard admin pour la gestion des réservations",
-          },
-        ]),
-        testimonial: JSON.stringify({
-          quote:
-            "Soporis Group a transformé notre vision en une plateforme digitale exceptionnelle. Le site capture parfaitement l'essence de notre spa tout en offrant une expérience utilisateur fluide. L'interface d'administration nous permet de tout gérer facilement, des réservations aux produits.",
-          author: "Simon Ossale",
-          role: "Gérant, Sérénité Spa",
-        }),
-      },
+      data: projectData,
     });
   }
 
-  console.log("✅ Projet Sérénité Spa ajouté/mis à jour avec succès !");
+  console.log(
+    "✅ Projet E-commerce Santé & Bien-être ajouté/mis à jour avec succès !"
+  );
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Erreur lors du seed du projet Sérénité Spa:", e);
+    console.error(
+      "❌ Erreur lors du seed du projet E-commerce Santé & Bien-être:",
+      e
+    );
     process.exit(1);
   })
   .finally(async () => {

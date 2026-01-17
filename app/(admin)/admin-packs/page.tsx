@@ -30,6 +30,9 @@ import {
   Percent,
   Star,
   GripVertical,
+  Euro,
+  Currency,
+  Coins,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -41,6 +44,8 @@ import {
 import type { Pack } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 export default function AdminPacksPage() {
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -48,6 +53,9 @@ export default function AdminPacksPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPack, setEditingPack] = useState<Pack | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activePromoTab, setActivePromoTab] = useState<"EUR" | "TND" | "CFA">(
+    "EUR"
+  );
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -62,8 +70,15 @@ export default function AdminPacksPage() {
     features: "",
     isPopular: false,
     isPromo: false,
-    promoLabel: "",
-    promoEndDate: "",
+    isPromoEUR: false,
+    isPromoTND: false,
+    isPromoCFA: false,
+    promoLabelEUR: "",
+    promoLabelTND: "",
+    promoLabelCFA: "",
+    promoEndDateEUR: "",
+    promoEndDateTND: "",
+    promoEndDateCFA: "",
     isActive: true,
     order: 1,
   });
@@ -103,9 +118,30 @@ export default function AdminPacksPage() {
         originalPriceCFA: pack.originalPriceCFA || undefined,
         features: pack.features.join("\n"),
         isPopular: pack.isPopular,
-        isPromo: pack.isPromo,
-        promoLabel: pack.promoLabel || "",
-        promoEndDate: pack.promoEndDate
+        isPromo:
+          pack.isPromo ||
+          (pack.originalPriceEUR !== null &&
+            pack.originalPriceEUR !== undefined) ||
+          (pack.originalPriceTND !== null &&
+            pack.originalPriceTND !== undefined) ||
+          (pack.originalPriceCFA !== null &&
+            pack.originalPriceCFA !== undefined),
+        isPromoEUR:
+          pack.originalPriceEUR !== null && pack.originalPriceEUR !== undefined,
+        isPromoTND:
+          pack.originalPriceTND !== null && pack.originalPriceTND !== undefined,
+        isPromoCFA:
+          pack.originalPriceCFA !== null && pack.originalPriceCFA !== undefined,
+        promoLabelEUR: pack.promoLabel?.split("|")[0] || "",
+        promoLabelTND: pack.promoLabel?.split("|")[1] || "",
+        promoLabelCFA: pack.promoLabel?.split("|")[2] || "",
+        promoEndDateEUR: pack.promoEndDate
+          ? new Date(pack.promoEndDate).toISOString().split("T")[0]
+          : "",
+        promoEndDateTND: pack.promoEndDate
+          ? new Date(pack.promoEndDate).toISOString().split("T")[0]
+          : "",
+        promoEndDateCFA: pack.promoEndDate
           ? new Date(pack.promoEndDate).toISOString().split("T")[0]
           : "",
         isActive: pack.isActive,
@@ -125,8 +161,15 @@ export default function AdminPacksPage() {
         features: "",
         isPopular: false,
         isPromo: false,
-        promoLabel: "",
-        promoEndDate: "",
+        isPromoEUR: false,
+        isPromoTND: false,
+        isPromoCFA: false,
+        promoLabelEUR: "",
+        promoLabelTND: "",
+        promoLabelCFA: "",
+        promoEndDateEUR: "",
+        promoEndDateTND: "",
+        promoEndDateCFA: "",
         isActive: true,
         order:
           packs.length > 0 ? Math.max(...packs.map((p) => p.order)) + 1 : 1,
@@ -154,16 +197,35 @@ export default function AdminPacksPage() {
     setIsSubmitting(true);
 
     try {
+      // Construire le promoLabel combiné (format: EUR|TND|CFA)
+      const promoLabel = `${formData.promoLabelEUR || ""}|${
+        formData.promoLabelTND || ""
+      }|${formData.promoLabelCFA || ""}`;
+
       const packData = {
         ...formData,
         features: featuresArray,
-        promoEndDate: formData.promoEndDate
-          ? new Date(formData.promoEndDate).toISOString()
+        promoLabel: promoLabel,
+        promoEndDate: formData.promoEndDateEUR
+          ? new Date(formData.promoEndDateEUR).toISOString()
           : null,
-        promoLabel: formData.promoLabel || null,
-        originalPriceEUR: formData.originalPriceEUR ?? null,
-        originalPriceTND: formData.originalPriceTND ?? null,
-        originalPriceCFA: formData.originalPriceCFA ?? null,
+        promoEndDateTND: formData.promoEndDateTND
+          ? new Date(formData.promoEndDateTND).toISOString()
+          : null,
+        promoEndDateCFA: formData.promoEndDateCFA
+          ? new Date(formData.promoEndDateCFA).toISOString()
+          : null,
+        originalPriceEUR: formData.isPromoEUR
+          ? formData.originalPriceEUR || null
+          : null,
+        originalPriceTND: formData.isPromoTND
+          ? formData.originalPriceTND || null
+          : null,
+        originalPriceCFA: formData.isPromoCFA
+          ? formData.originalPriceCFA || null
+          : null,
+        isPromo:
+          formData.isPromoEUR || formData.isPromoTND || formData.isPromoCFA,
       };
 
       if (editingPack) {
@@ -223,6 +285,60 @@ export default function AdminPacksPage() {
     }
   };
 
+  // Fonction pour formater l'affichage des prix avec promotion
+  const formatPriceDisplay = (pack: Pack, currency: "EUR" | "TND" | "CFA") => {
+    const price =
+      currency === "EUR"
+        ? pack.priceEUR
+        : currency === "TND"
+        ? pack.priceTND
+        : pack.priceCFA;
+
+    const originalPrice =
+      currency === "EUR"
+        ? pack.originalPriceEUR
+        : currency === "TND"
+        ? pack.originalPriceTND
+        : pack.originalPriceCFA;
+
+    const hasPromo =
+      price !== null &&
+      price !== undefined &&
+      originalPrice !== null &&
+      originalPrice !== undefined &&
+      originalPrice > price;
+
+    if (hasPromo) {
+      return (
+        <div className="flex flex-col">
+          <span className="text-sm text-muted-foreground line-through">
+            {originalPrice}
+            {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
+          </span>
+          <span className="font-medium text-green-600">
+            {price}
+            {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <span className="font-medium">
+        {price}
+        {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
+      </span>
+    );
+  };
+
+  // Fonction pour extraire le label de promotion par devise
+  const getPromoLabel = (pack: Pack, currency: "EUR" | "TND" | "CFA") => {
+    if (!pack.promoLabel) return null;
+    const labels = pack.promoLabel.split("|");
+    const index = currency === "EUR" ? 0 : currency === "TND" ? 1 : 2;
+    return labels[index] || null;
+  };
+
   return (
     <div className="space-y-6">
       {/* Titre et description */}
@@ -250,7 +366,7 @@ export default function AdminPacksPage() {
               <Plus className="h-4 w-4 mr-2" /> Nouveau pack
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingPack ? "Modifier le pack" : "Nouveau pack"}
@@ -291,11 +407,12 @@ export default function AdminPacksPage() {
               {/* Section Prix Multi-devises */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border p-4 rounded-lg bg-muted/20">
                 <div className="space-y-2">
-                  <Label className="required text-xs uppercase font-bold">
-                    Prix EUR (€)
+                  <Label className="required text-xs uppercase font-bold flex items-center gap-1">
+                    <Euro className="h-3 w-3" /> Prix EUR (€)
                   </Label>
                   <Input
                     type="number"
+                    step="0.01"
                     value={formData.priceEUR}
                     onChange={(e) =>
                       setFormData({
@@ -307,11 +424,12 @@ export default function AdminPacksPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase font-bold">
-                    Prix TND (DT)
+                  <Label className="text-xs uppercase font-bold flex items-center gap-1">
+                    <Currency className="h-3 w-3" /> Prix TND (DT)
                   </Label>
                   <Input
                     type="number"
+                    step="0.01"
                     value={formData.priceTND}
                     onChange={(e) =>
                       setFormData({
@@ -323,11 +441,12 @@ export default function AdminPacksPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase font-bold">
-                    Prix CFA (FCFA)
+                  <Label className="text-xs uppercase font-bold flex items-center gap-1">
+                    <Coins className="h-3 w-3" /> Prix CFA (FCFA)
                   </Label>
                   <Input
                     type="number"
+                    step="1"
                     value={formData.priceCFA}
                     onChange={(e) =>
                       setFormData({
@@ -370,68 +489,141 @@ export default function AdminPacksPage() {
                 />
               </div>
 
-              {/* Promotion section */}
+              {/* Promotion section avec onglets pour chaque devise */}
               <div className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center gap-2">
                   <Percent className="h-5 w-5 text-accent" />
-                  <h4 className="font-medium">Promotion</h4>
+                  <h4 className="font-medium">Promotions par devise</h4>
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="isPromo">Activer la promotion</Label>
-                  <Switch
-                    id="isPromo"
-                    checked={formData.isPromo}
-                    onCheckedChange={(c) =>
-                      setFormData({ ...formData, isPromo: c })
-                    }
-                    disabled={isSubmitting}
-                  />
-                </div>
-                {formData.isPromo && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Original EUR</Label>
-                      <Input
-                        type="number"
-                        value={formData.originalPriceEUR || ""}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            originalPriceEUR: e.target.value
-                              ? parseFloat(e.target.value)
-                              : undefined,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Label</Label>
-                      <Input
-                        placeholder="Ex: -15%"
-                        value={formData.promoLabel}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            promoLabel: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Date fin</Label>
-                      <Input
-                        type="date"
-                        value={formData.promoEndDate}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            promoEndDate: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                )}
+
+                <Tabs
+                  value={activePromoTab}
+                  onValueChange={(v) =>
+                    setActivePromoTab(v as "EUR" | "TND" | "CFA")
+                  }
+                >
+                  <TabsList className="grid grid-cols-3 w-full">
+                    <TabsTrigger
+                      value="EUR"
+                      className="flex items-center gap-1"
+                    >
+                      <Euro className="h-3 w-3" /> EUR
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="TND"
+                      className="flex items-center gap-1"
+                    >
+                      <Currency className="h-3 w-3" /> TND
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="CFA"
+                      className="flex items-center gap-1"
+                    >
+                      <Coins className="h-3 w-3" /> CFA
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {(["EUR", "TND", "CFA"] as const).map((currency) => (
+                    <TabsContent
+                      key={currency}
+                      value={currency}
+                      className="space-y-4 pt-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor={`isPromo${currency}`}>
+                          Activer la promotion pour {currency}
+                        </Label>
+                        <Switch
+                          id={`isPromo${currency}`}
+                          checked={
+                            formData[
+                              `isPromo${currency}` as keyof typeof formData
+                            ] as boolean
+                          }
+                          onCheckedChange={(c) =>
+                            setFormData({
+                              ...formData,
+                              [`isPromo${currency}`]: c,
+                            })
+                          }
+                          disabled={isSubmitting}
+                        />
+                      </div>
+
+                      {formData[
+                        `isPromo${currency}` as keyof typeof formData
+                      ] && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">
+                              Prix original (
+                              {currency === "EUR"
+                                ? "€"
+                                : currency === "TND"
+                                ? "DT"
+                                : "CFA"}
+                              )
+                            </Label>
+                            <Input
+                              type="number"
+                              step={currency === "CFA" ? "1" : "0.01"}
+                              value={
+                                (formData[
+                                  `originalPrice${currency}` as keyof typeof formData
+                                ] as number | undefined) || ""
+                              }
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  [`originalPrice${currency}`]: e.target.value
+                                    ? parseFloat(e.target.value)
+                                    : undefined,
+                                })
+                              }
+                              placeholder={`Prix avant réduction`}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Label promotion</Label>
+                            <Input
+                              placeholder="Ex: -15%"
+                              value={
+                                formData[
+                                  `promoLabel${currency}` as keyof typeof formData
+                                ] as string
+                              }
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  [`promoLabel${currency}`]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">
+                              Date fin promotion
+                            </Label>
+                            <Input
+                              type="date"
+                              value={
+                                formData[
+                                  `promoEndDate${currency}` as keyof typeof formData
+                                ] as string
+                              }
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  [`promoEndDate${currency}`]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -481,6 +673,7 @@ export default function AdminPacksPage() {
                 <TableHead className="w-12">Ordre</TableHead>
                 <TableHead>Pack</TableHead>
                 <TableHead>Prix (EUR/TND/CFA)</TableHead>
+                <TableHead>Promotions</TableHead>
                 <TableHead>Fonctionnalités</TableHead>
                 <TableHead>Statuts</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -488,7 +681,6 @@ export default function AdminPacksPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                // Skeleton loading pour le tableau
                 Array.from({ length: 5 }).map((_, index) => (
                   <TableRow key={index}>
                     <TableCell>
@@ -507,6 +699,11 @@ export default function AdminPacksPage() {
                       <div className="space-y-2">
                         <Skeleton className="h-4 w-16" />
                         <Skeleton className="h-3 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Skeleton className="h-5 w-20 rounded-full" />
                       </div>
                     </TableCell>
                     <TableCell>
@@ -551,11 +748,57 @@ export default function AdminPacksPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">{pack.priceEUR}€</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {pack.priceTND} DT / {pack.priceCFA} CFA
-                          </p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Euro className="h-3 w-3 text-muted-foreground" />
+                            {formatPriceDisplay(pack, "EUR")}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Currency className="h-3 w-3 text-muted-foreground" />
+                            {formatPriceDisplay(pack, "TND")}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Coins className="h-3 w-3 text-muted-foreground" />
+                            {formatPriceDisplay(pack, "CFA")}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {getPromoLabel(pack, "EUR") && (
+                            <Badge
+                              variant="outline"
+                              className="bg-blue-50 text-blue-700 border-blue-200"
+                            >
+                              <Euro className="h-3 w-3 mr-1" />{" "}
+                              {getPromoLabel(pack, "EUR")}
+                            </Badge>
+                          )}
+                          {getPromoLabel(pack, "TND") && (
+                            <Badge
+                              variant="outline"
+                              className="bg-green-50 text-green-700 border-green-200"
+                            >
+                              <Currency className="h-3 w-3 mr-1" />{" "}
+                              {getPromoLabel(pack, "TND")}
+                            </Badge>
+                          )}
+                          {getPromoLabel(pack, "CFA") && (
+                            <Badge
+                              variant="outline"
+                              className="bg-purple-50 text-purple-700 border-purple-200"
+                            >
+                              <Coins className="h-3 w-3 mr-1" />{" "}
+                              {getPromoLabel(pack, "CFA")}
+                            </Badge>
+                          )}
+                          {!getPromoLabel(pack, "EUR") &&
+                            !getPromoLabel(pack, "TND") &&
+                            !getPromoLabel(pack, "CFA") && (
+                              <span className="text-xs text-muted-foreground">
+                                Aucune promo
+                              </span>
+                            )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -632,7 +875,7 @@ export default function AdminPacksPage() {
                   ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="space-y-2">
                       <p className="text-muted-foreground">Aucun pack trouvé</p>
                       <p className="text-sm text-muted-foreground">
