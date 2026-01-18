@@ -39,9 +39,13 @@ const socials = [
     icon: IoLogoYoutube,
     href: "https://www.youtube.com/@SoporisDev",
   },
-  { name: "Facebook", icon: IoLogoFacebook, href: "#" },
-  { name: "Instagram", icon: IoLogoInstagram, href: "#" },
-  { name: "LinkedIn", icon: IoLogoLinkedin, href: "#" },
+  {
+    name: "Facebook",
+    icon: IoLogoFacebook,
+    href: "https://www.facebook.com/soporisgroup",
+  },
+  // { name: "Instagram", icon: IoLogoInstagram, href: "#" },
+  // { name: "LinkedIn", icon: IoLogoLinkedin, href: "#" },
 ];
 
 export function Footer() {
