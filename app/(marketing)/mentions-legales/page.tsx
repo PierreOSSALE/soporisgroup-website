@@ -76,10 +76,10 @@ export default function MentionsLegalesPage() {
                     </p>
                   </div>
                   <div className="space-y-2 text-muted-foreground">
-                    <p>
+                    {/* <p>
                       <strong className="text-primary">Dirigeant :</strong>{" "}
                       Simon Ossale
-                    </p>
+                    </p> */}
                     <p>
                       <strong className="text-primary">Email :</strong>{" "}
                       contact@soporisgroup.com
