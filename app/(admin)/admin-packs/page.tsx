@@ -18,6 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,13 +28,13 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Tag,
   Percent,
   Star,
   GripVertical,
   Euro,
   Currency,
   Coins,
+  AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -45,28 +47,55 @@ import type { Pack } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
+
+interface PackFormData {
+  name: string;
+  description: string;
+  priceEUR: number;
+  originalPriceEUR?: number;
+  priceTND: number;
+  originalPriceTND?: number;
+  priceCFA: number;
+  originalPriceCFA?: number;
+  features: string;
+  isPopular: boolean;
+  isPromo: boolean;
+  isPromoEUR: boolean;
+  isPromoTND: boolean;
+  isPromoCFA: boolean;
+  promoLabelEUR: string;
+  promoLabelTND: string;
+  promoLabelCFA: string;
+  promoEndDateEUR: string;
+  promoEndDateTND: string;
+  promoEndDateCFA: string;
+  isActive: boolean;
+  order: number;
+}
 
 export default function AdminPacksPage() {
   const [packs, setPacks] = useState<Pack[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [packToDelete, setPackToDelete] = useState<Pack | null>(null);
   const [editingPack, setEditingPack] = useState<Pack | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activePromoTab, setActivePromoTab] = useState<"EUR" | "TND" | "CFA">(
     "EUR"
   );
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PackFormData>({
     name: "",
     description: "",
     priceEUR: 0,
-    originalPriceEUR: undefined as number | undefined,
+    originalPriceEUR: undefined,
     priceTND: 0,
-    originalPriceTND: undefined as number | undefined,
+    originalPriceTND: undefined,
     priceCFA: 0,
-    originalPriceCFA: undefined as number | undefined,
+    originalPriceCFA: undefined,
     features: "",
     isPopular: false,
     isPromo: false,
@@ -107,6 +136,12 @@ export default function AdminPacksPage() {
   const handleOpenDialog = (pack?: Pack) => {
     if (pack) {
       setEditingPack(pack);
+
+      // Extraire les labels de promotion par devise
+      const promoLabels = pack.promoLabel
+        ? pack.promoLabel.split("|")
+        : ["", "", ""];
+
       setFormData({
         name: pack.name,
         description: pack.description,
@@ -118,31 +153,27 @@ export default function AdminPacksPage() {
         originalPriceCFA: pack.originalPriceCFA || undefined,
         features: pack.features.join("\n"),
         isPopular: pack.isPopular,
-        isPromo:
-          pack.isPromo ||
-          (pack.originalPriceEUR !== null &&
-            pack.originalPriceEUR !== undefined) ||
-          (pack.originalPriceTND !== null &&
-            pack.originalPriceTND !== undefined) ||
-          (pack.originalPriceCFA !== null &&
-            pack.originalPriceCFA !== undefined),
-        isPromoEUR:
-          pack.originalPriceEUR !== null && pack.originalPriceEUR !== undefined,
-        isPromoTND:
-          pack.originalPriceTND !== null && pack.originalPriceTND !== undefined,
-        isPromoCFA:
-          pack.originalPriceCFA !== null && pack.originalPriceCFA !== undefined,
-        promoLabelEUR: pack.promoLabel?.split("|")[0] || "",
-        promoLabelTND: pack.promoLabel?.split("|")[1] || "",
-        promoLabelCFA: pack.promoLabel?.split("|")[2] || "",
+        isPromo: pack.isPromo || false,
+        isPromoEUR: !!(
+          pack.originalPriceEUR && pack.originalPriceEUR > (pack.priceEUR || 0)
+        ),
+        isPromoTND: !!(
+          pack.originalPriceTND && pack.originalPriceTND > (pack.priceTND || 0)
+        ),
+        isPromoCFA: !!(
+          pack.originalPriceCFA && pack.originalPriceCFA > (pack.priceCFA || 0)
+        ),
+        promoLabelEUR: promoLabels[0] || "",
+        promoLabelTND: promoLabels[1] || "",
+        promoLabelCFA: promoLabels[2] || "",
         promoEndDateEUR: pack.promoEndDate
           ? new Date(pack.promoEndDate).toISOString().split("T")[0]
           : "",
-        promoEndDateTND: pack.promoEndDate
-          ? new Date(pack.promoEndDate).toISOString().split("T")[0]
+        promoEndDateTND: pack.promoEndDateTND
+          ? new Date(pack.promoEndDateTND).toISOString().split("T")[0]
           : "",
-        promoEndDateCFA: pack.promoEndDate
-          ? new Date(pack.promoEndDate).toISOString().split("T")[0]
+        promoEndDateCFA: pack.promoEndDateCFA
+          ? new Date(pack.promoEndDateCFA).toISOString().split("T")[0]
           : "",
         isActive: pack.isActive,
         order: pack.order,
@@ -229,14 +260,12 @@ export default function AdminPacksPage() {
       };
 
       if (editingPack) {
-        // @ts-ignore
         await updatePack(editingPack.id, packData);
         toast({
           title: "Pack modifié",
           description: "Le pack a été mis à jour.",
         });
       } else {
-        // @ts-ignore
         await createPack(packData);
         toast({
           title: "Pack créé",
@@ -256,14 +285,33 @@ export default function AdminPacksPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer ce pack ?")) return;
+  const handleDeleteClick = (pack: Pack) => {
+    setPackToDelete(pack);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!packToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deletePack(id);
-      toast({ title: "Pack supprimé", variant: "destructive" });
+      await deletePack(packToDelete.id);
+      toast({
+        title: "Pack supprimé",
+        description: `Le pack "${packToDelete.name}" a été supprimé avec succès.`,
+        variant: "destructive",
+      });
       await loadPacks();
     } catch (error) {
-      toast({ title: "Erreur", variant: "destructive" });
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le pack. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setPackToDelete(null);
     }
   };
 
@@ -301,22 +349,21 @@ export default function AdminPacksPage() {
         ? pack.originalPriceTND
         : pack.originalPriceCFA;
 
-    const hasPromo =
-      price !== null &&
-      price !== undefined &&
-      originalPrice !== null &&
-      originalPrice !== undefined &&
-      originalPrice > price;
+    // Gérer les valeurs null
+    const safePrice = price ?? 0;
+    const safeOriginalPrice = originalPrice ?? 0;
+
+    const hasPromo = safeOriginalPrice > 0 && safeOriginalPrice > safePrice;
 
     if (hasPromo) {
       return (
         <div className="flex flex-col">
           <span className="text-sm text-muted-foreground line-through">
-            {originalPrice}
+            {safeOriginalPrice}
             {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
           </span>
           <span className="font-medium text-green-600">
-            {price}
+            {safePrice}
             {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
           </span>
         </div>
@@ -325,7 +372,7 @@ export default function AdminPacksPage() {
 
     return (
       <span className="font-medium">
-        {price}
+        {safePrice}
         {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
       </span>
     );
@@ -337,6 +384,53 @@ export default function AdminPacksPage() {
     const labels = pack.promoLabel.split("|");
     const index = currency === "EUR" ? 0 : currency === "TND" ? 1 : 2;
     return labels[index] || null;
+  };
+
+  // Fonctions helper pour accéder aux champs de manière type-safe
+  const getPromoDateValue = (currency: "EUR" | "TND" | "CFA"): string => {
+    switch (currency) {
+      case "EUR":
+        return formData.promoEndDateEUR;
+      case "TND":
+        return formData.promoEndDateTND;
+      case "CFA":
+        return formData.promoEndDateCFA;
+    }
+  };
+
+  const getPromoLabelValue = (currency: "EUR" | "TND" | "CFA"): string => {
+    switch (currency) {
+      case "EUR":
+        return formData.promoLabelEUR;
+      case "TND":
+        return formData.promoLabelTND;
+      case "CFA":
+        return formData.promoLabelCFA;
+    }
+  };
+
+  const getOriginalPriceValue = (
+    currency: "EUR" | "TND" | "CFA"
+  ): number | undefined => {
+    switch (currency) {
+      case "EUR":
+        return formData.originalPriceEUR;
+      case "TND":
+        return formData.originalPriceTND;
+      case "CFA":
+        return formData.originalPriceCFA;
+    }
+  };
+
+  const getIsPromoValue = (currency: "EUR" | "TND" | "CFA"): boolean => {
+    switch (currency) {
+      case "EUR":
+        return formData.isPromoEUR;
+      case "TND":
+        return formData.isPromoTND;
+      case "CFA":
+        return formData.isPromoCFA;
+    }
   };
 
   return (
@@ -535,24 +629,27 @@ export default function AdminPacksPage() {
                         </Label>
                         <Switch
                           id={`isPromo${currency}`}
-                          checked={
-                            formData[
-                              `isPromo${currency}` as keyof typeof formData
-                            ] as boolean
-                          }
-                          onCheckedChange={(c) =>
-                            setFormData({
-                              ...formData,
-                              [`isPromo${currency}`]: c,
-                            })
-                          }
+                          checked={getIsPromoValue(currency)}
+                          onCheckedChange={(c) => {
+                            const newFormData = { ...formData };
+                            switch (currency) {
+                              case "EUR":
+                                newFormData.isPromoEUR = c;
+                                break;
+                              case "TND":
+                                newFormData.isPromoTND = c;
+                                break;
+                              case "CFA":
+                                newFormData.isPromoCFA = c;
+                                break;
+                            }
+                            setFormData(newFormData);
+                          }}
                           disabled={isSubmitting}
                         />
                       </div>
 
-                      {formData[
-                        `isPromo${currency}` as keyof typeof formData
-                      ] && (
+                      {getIsPromoValue(currency) && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs">
@@ -567,19 +664,25 @@ export default function AdminPacksPage() {
                             <Input
                               type="number"
                               step={currency === "CFA" ? "1" : "0.01"}
-                              value={
-                                (formData[
-                                  `originalPrice${currency}` as keyof typeof formData
-                                ] as number | undefined) || ""
-                              }
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  [`originalPrice${currency}`]: e.target.value
-                                    ? parseFloat(e.target.value)
-                                    : undefined,
-                                })
-                              }
+                              value={getOriginalPriceValue(currency) || ""}
+                              onChange={(e) => {
+                                const newFormData = { ...formData };
+                                const value = e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : undefined;
+                                switch (currency) {
+                                  case "EUR":
+                                    newFormData.originalPriceEUR = value;
+                                    break;
+                                  case "TND":
+                                    newFormData.originalPriceTND = value;
+                                    break;
+                                  case "CFA":
+                                    newFormData.originalPriceCFA = value;
+                                    break;
+                                }
+                                setFormData(newFormData);
+                              }}
                               placeholder={`Prix avant réduction`}
                             />
                           </div>
@@ -587,17 +690,22 @@ export default function AdminPacksPage() {
                             <Label className="text-xs">Label promotion</Label>
                             <Input
                               placeholder="Ex: -15%"
-                              value={
-                                formData[
-                                  `promoLabel${currency}` as keyof typeof formData
-                                ] as string
-                              }
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  [`promoLabel${currency}`]: e.target.value,
-                                })
-                              }
+                              value={getPromoLabelValue(currency)}
+                              onChange={(e) => {
+                                const newFormData = { ...formData };
+                                switch (currency) {
+                                  case "EUR":
+                                    newFormData.promoLabelEUR = e.target.value;
+                                    break;
+                                  case "TND":
+                                    newFormData.promoLabelTND = e.target.value;
+                                    break;
+                                  case "CFA":
+                                    newFormData.promoLabelCFA = e.target.value;
+                                    break;
+                                }
+                                setFormData(newFormData);
+                              }}
                             />
                           </div>
                           <div className="space-y-2">
@@ -606,17 +714,25 @@ export default function AdminPacksPage() {
                             </Label>
                             <Input
                               type="date"
-                              value={
-                                formData[
-                                  `promoEndDate${currency}` as keyof typeof formData
-                                ] as string
-                              }
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  [`promoEndDate${currency}`]: e.target.value,
-                                })
-                              }
+                              value={getPromoDateValue(currency)}
+                              onChange={(e) => {
+                                const newFormData = { ...formData };
+                                switch (currency) {
+                                  case "EUR":
+                                    newFormData.promoEndDateEUR =
+                                      e.target.value;
+                                    break;
+                                  case "TND":
+                                    newFormData.promoEndDateTND =
+                                      e.target.value;
+                                    break;
+                                  case "CFA":
+                                    newFormData.promoEndDateCFA =
+                                      e.target.value;
+                                    break;
+                                }
+                                setFormData(newFormData);
+                              }}
                             />
                           </div>
                         </div>
@@ -864,8 +980,8 @@ export default function AdminPacksPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDelete(pack.id)}
-                            className="text-red-600"
+                            onClick={() => handleDeleteClick(pack)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -889,6 +1005,51 @@ export default function AdminPacksPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Dialog de confirmation pour la suppression */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Confirmer la suppression
+            </DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer le pack{" "}
+              <span className="font-semibold text-foreground">
+                {packToDelete?.name}
+              </span>
+              ? Cette action est irréversible et supprimera définitivement le
+              pack.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+              <p className="text-sm text-amber-700">
+                Attention : Cette action ne peut pas être annulée. Toutes les
+                données associées à ce pack seront définitivement supprimées.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Suppression..." : "Supprimer définitivement"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

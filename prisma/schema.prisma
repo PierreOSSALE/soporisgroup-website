@@ -148,6 +148,8 @@ model Pack {
   isPromo           Boolean   @default(false) @map("is_promo")
   promoLabel        String?   @map("promo_label")
   promoEndDate      DateTime? @map("promo_end_date")
+  promoEndDateTND   DateTime? @map("promo_end_date_tnd")
+  promoEndDateCFA   DateTime? @map("promo_end_date_cfa")
   isActive          Boolean   @default(true) @map("is_active")
   order             Int       @default(0)
   createdAt         DateTime  @default(now()) @map("created_at")

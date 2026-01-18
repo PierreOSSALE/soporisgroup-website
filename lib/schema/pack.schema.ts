@@ -26,6 +26,8 @@ export const packSchema = z.object({
   isPromo: z.boolean().default(false),
   promoLabel: z.string().optional().nullable(),
   promoEndDate: z.string().optional().nullable(),
+  promoEndDateTND: z.string().optional().nullable(),
+  promoEndDateCFA: z.string().optional().nullable(),
   isActive: z.boolean().default(true),
   order: z.number().int().min(0).default(0),
 });
