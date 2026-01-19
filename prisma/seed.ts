@@ -1,127 +1,125 @@
-// prisma/seed-soporisgroup-website.ts
+// prisma/seed.ts
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Début du seed du site Soporis Group...");
+  console.log("🔨 Début du seeding...");
 
-  // Vérifier si le projet existe déjà
-  const existingProject = await prisma.project.findUnique({
-    where: { slug: "soporisgroup-agence-web" },
-  });
+  // Nettoyer les tables (optionnel - commenter si vous voulez garder les données existantes)
+  console.log("🧹 Nettoyage des tables...");
 
-  const projectData = {
-    slug: "soporisgroup-agence-web",
-    title: "Soporis Group - Agence Web",
-    subtitle: "Site vitrine et portfolio de l'agence web Soporis Group",
-    category: "Sites Web",
-    description:
-      "Développement du site vitrine et portfolio de l'agence web Soporis Group. Ce site présente les services de l'agence, son portfolio de projets réalisés, ses offres de packs, un blog professionnel et un système de contact avancé. Conçu pour convertir les visiteurs en clients grâce à une expérience utilisateur optimisée et une présentation professionnelle des services.",
-    imageUrl:
-      "https://res.cloudinary.com/db8hwgart/image/upload/v1768483619/soporis_h2zamu.png",
-    client: "Soporis Group",
-    duration: "2 semaines",
-    pack: "Premium",
-    year: "2026",
-    status: "published" as const,
-    featured: true,
-    technologies: JSON.stringify([
-      "Next.js 15",
-      "TypeScript",
-      "Prisma",
-      "Supabase",
-      "PostgreSQL",
-      "shadcn/ui",
-      "Tailwind CSS v4",
-      "Resend",
-      "React Hook Form",
-      "Zod",
-      "LWS (Nom de domaine)",
-      "Framer Motion",
-    ]),
-    challenges: JSON.stringify([
-      "Créer un site qui reflète le professionnalisme et l'expertise de l'agence",
-      "Développer un portfolio dynamique présentant les projets réalisés",
-      "Implémenter un système de blog avec gestion de contenu",
-      "Mettre en place un formulaire de contact intelligent avec suivi des leads",
-      "Optimiser le SEO pour attirer des clients potentiels",
-      "Créer des sections modulaires facilement maintenables",
-    ]),
-    solutions: JSON.stringify([
-      "Design élégant et professionnel avec une palette de couleurs cohérente avec la marque",
-      "Base de données Supabase pour gérer dynamiquement les projets, articles de blog et contacts",
-      "Interface d'administration pour gérer le contenu sans intervention technique",
-      "Intégration de Resend pour l'envoi automatique d'emails et notifications",
-      "Structure de code modulaire avec composants réutilisables",
-      "Optimisation des performances avec SSG et ISR pour un chargement ultra-rapide",
-    ]),
-    results: JSON.stringify([
-      "Site livré en 2 semaines avec toutes les fonctionnalités requises",
-      "Augmentation de 70% des leads qualifiés par rapport à l'ancien site",
-      "Réduction de 40% du temps de gestion du contenu grâce à l'admin",
-      "Score Google PageSpeed de 98/100 sur mobile et desktop",
-      "Portfolio dynamique facilement mis à jour avec les nouveaux projets",
-      "Base solide pour le référencement local et national",
-    ]),
-    screenshots: JSON.stringify([
-      {
-        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768482766/soporis_home_x3rerk.png",
-        caption: "Page d'accueil avec hero section présentant les services",
-      },
-      {
-        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768482768/soporis_blog_ncvqcp.png",
-        caption:
-          "Section services détaillant UI/UX Design, Développement Web et Performance",
-      },
-      {
-        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768482764/soporis_project_axqwvt.png",
-        caption: "Portfolio des projets réalisés avec filtres par catégorie",
-      },
-      {
-        url: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1200&h=800&fit=crop",
-        caption: "Section packs et offres (Starter, Pro, Enterprise)",
-      },
-      {
-        url: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=1200&h=800&fit=crop",
-        caption: "Blog professionnel avec articles sur le web et l'UI/UX",
-      },
-      {
-        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768482764/soporis_contact_snoskx.png",
-        caption: "Formulaire de contact intelligent avec intégration Resend",
-      },
-      {
-        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768482764/soporis_admin_hi0nqh.png",
-        caption: "Dashboard admin pour gérer projets, blog et contacts",
-      },
-    ]),
-    testimonial: JSON.stringify({
-      quote:
-        "Notre nouveau site est exactement ce que nous voulions : professionnel, performant et parfaitement représentatif de notre expertise. Il nous permet de présenter nos services et notre portfolio de manière élégante, tout en générant un flux constant de leads qualifiés. Un outil indispensable pour notre croissance.",
-      author: "Équipe Soporis Group",
-      role: "Agence Web & UI/UX",
-    }),
-  };
+  await prisma.service.deleteMany({});
 
-  if (existingProject) {
-    console.log("⚠️ Projet Soporis Group déjà existant, mise à jour...");
-    await prisma.project.update({
-      where: { slug: "soporisgroup-agence-web" },
-      data: projectData,
+  // Ajouter cette partie dans le fichier prisma/seed.ts
+
+  console.log("🛠️ Création des services...");
+  const services = [
+    {
+      title: "UI/UX Design",
+      description:
+        "Créez des interfaces modernes et intuitives qui engagent vos utilisateurs et renforcent votre image de marque.",
+      icon: "Palette",
+      price: "À partir de 1200€",
+      slug: "ui-ux-design",
+      color: "#F59E0B", // Amber-500
+      order: 1,
+      isActive: true,
+      features: [
+        "Interfaces modernes et élégantes",
+        "Parcours utilisateurs optimisés",
+        "Design centré utilisateur",
+        "Prototypes interactifs",
+        "Design system complet",
+      ],
+    },
+    {
+      title: "Développement Web",
+      description:
+        "Développement de sites et applications web performants, adaptés à vos besoins avec les technologies modernes.",
+      icon: "Code2",
+      price: "À partir de 1800€",
+      slug: "developpement-web",
+      color: "#3B82F6", // Blue-500
+      order: 2,
+      isActive: true,
+      features: [
+        "Sites vitrines professionnels",
+        "Applications web sur mesure",
+        "Landing pages performantes",
+        "Intégration CMS",
+        "Responsive design parfait",
+      ],
+    },
+    {
+      title: "Performance & Conversion",
+      description:
+        "Optimisez vos performances web pour améliorer votre référencement et maximiser vos conversions.",
+      icon: "Gauge",
+      price: "À partir de 800€/mois",
+      slug: "performance-conversion",
+      color: "#10B981", // Emerald-500
+      order: 3,
+      isActive: true,
+      features: [
+        "Audit de performance complet",
+        "Optimisation SEO avancée",
+        "Analytics & reporting",
+        "Tests A/B & conversion",
+        "Maintenance technique",
+      ],
+    },
+    {
+      title: "E-commerce",
+      description:
+        "Développez votre boutique en ligne avec des solutions e-commerce complètes et sécurisées.",
+      icon: "ShoppingCart",
+      price: "À partir de 2500€",
+      slug: "e-commerce",
+      color: "#8B5CF6", // Violet-500
+      order: 4,
+      isActive: true,
+      features: [
+        "Catalogue produits illimité",
+        "Paiements sécurisés",
+        "Gestion des stocks",
+        "Suivi des commandes",
+        "Marketing automatisé",
+      ],
+    },
+    {
+      title: "SEO & Marketing Digital",
+      description:
+        "Augmentez votre visibilité en ligne et attirez plus de clients grâce à nos stratégies marketing.",
+      icon: "TrendingUp",
+      price: "À partir de 500€/mois",
+      slug: "seo-marketing",
+      color: "#EC4899", // Pink-500
+      order: 5,
+      isActive: false,
+      features: [
+        "Audit SEO complet",
+        "Optimisation on-page",
+        "Stratégie de contenu",
+        "Marketing social média",
+        "Analytics avancés",
+      ],
+    },
+  ];
+
+  for (const service of services) {
+    await prisma.service.create({
+      data: service,
     });
-  } else {
-    // Créer le nouveau projet
-    await prisma.project.create({
-      data: projectData,
-    });
+    console.log(`✅ Service créé: ${service.title}`);
   }
 
-  console.log("✅ Site Soporis Group ajouté/mis à jour avec succès !");
+  console.log("🎉 Seeding terminé avec succès !");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Erreur lors du seed du site Soporis Group:", e);
+    console.error("❌ Erreur lors du seeding:", e);
     process.exit(1);
   })
   .finally(async () => {
