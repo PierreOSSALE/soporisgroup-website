@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Home, ChevronRight } from "lucide-react";
-import { Packs as PacksSection } from "@/components/features/Packs";
+import { Packs as PacksSection } from "@/components/features/packs/Packs";
 
 export const metadata: Metadata = {
   title: "Nos Packs & Tarifs | Soporis Group",

@@ -1,41 +1,15 @@
+// app/(admin)/admin-packs/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Percent,
-  Star,
-  GripVertical,
-  Euro,
-  Currency,
-  Coins,
-  AlertTriangle,
-} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   getPacks,
@@ -43,38 +17,16 @@ import {
   updatePack,
   deletePack,
 } from "@/lib/actions/pack.actions";
-import type { Pack } from "@prisma/client";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface PackFormData {
-  name: string;
-  description: string;
-  priceEUR: number;
-  originalPriceEUR?: number;
-  priceTND: number;
-  originalPriceTND?: number;
-  priceCFA: number;
-  originalPriceCFA?: number;
-  features: string;
-  isPopular: boolean;
-  isPromo: boolean;
-  isPromoEUR: boolean;
-  isPromoTND: boolean;
-  isPromoCFA: boolean;
-  promoLabelEUR: string;
-  promoLabelTND: string;
-  promoLabelCFA: string;
-  promoEndDateEUR: string;
-  promoEndDateTND: string;
-  promoEndDateCFA: string;
-  isActive: boolean;
-  order: number;
-}
+import { PackForm } from "@/components/features/packs/admin/PackForm";
+import { PacksTable } from "@/components/features/packs/admin/PacksTable";
+import { DeleteDialog } from "@/components/features/packs/admin/DeleteDialog";
+import { SearchAndFilters } from "@/components/features/packs/admin/SearchAndFilters";
+import { Plus } from "lucide-react";
+import type { Pack, PackFormData } from "@/types/pack";
 
 export default function AdminPacksPage() {
   const [packs, setPacks] = useState<Pack[]>([]);
+  const [filteredPacks, setFilteredPacks] = useState<Pack[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -85,6 +37,13 @@ export default function AdminPacksPage() {
   const [activePromoTab, setActivePromoTab] = useState<"EUR" | "TND" | "CFA">(
     "EUR"
   );
+
+  // États pour la recherche et les filtres
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [popularityFilter, setPopularityFilter] = useState("all");
+  const [currencyFilter, setCurrencyFilter] = useState("all");
+
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<PackFormData>({
@@ -117,6 +76,7 @@ export default function AdminPacksPage() {
     try {
       const data = await getPacks();
       setPacks(data || []);
+      setFilteredPacks(data || []);
     } catch (error) {
       console.error("Erreur lors du chargement des packs:", error);
       toast({
@@ -133,11 +93,82 @@ export default function AdminPacksPage() {
     loadPacks();
   }, []);
 
+  // Filtrer les packs en fonction des critères
+  useEffect(() => {
+    let result = [...packs];
+
+    // Filtre par recherche
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (pack) =>
+          pack.name.toLowerCase().includes(query) ||
+          pack.description.toLowerCase().includes(query) ||
+          pack.features.some((feature) => feature.toLowerCase().includes(query))
+      );
+    }
+
+    // Filtre par statut
+    if (statusFilter === "active") {
+      result = result.filter((pack) => pack.isActive);
+    } else if (statusFilter === "inactive") {
+      result = result.filter((pack) => !pack.isActive);
+    }
+
+    // Filtre par popularité
+    if (popularityFilter === "popular") {
+      result = result.filter((pack) => pack.isPopular);
+    } else if (popularityFilter === "not-popular") {
+      result = result.filter((pack) => !pack.isPopular);
+    }
+
+    // Filtre par devise (avec promotion)
+    if (currencyFilter !== "all") {
+      result = result.filter((pack) => {
+        const hasPromoInCurrency = (currency: "EUR" | "TND" | "CFA") => {
+          const originalPrice =
+            currency === "EUR"
+              ? pack.originalPriceEUR
+              : currency === "TND"
+              ? pack.originalPriceTND
+              : pack.originalPriceCFA;
+
+          const price =
+            currency === "EUR"
+              ? pack.priceEUR
+              : currency === "TND"
+              ? pack.priceTND
+              : pack.priceCFA;
+
+          return originalPrice && originalPrice > (price || 0);
+        };
+
+        if (currencyFilter === "EUR") return hasPromoInCurrency("EUR");
+        if (currencyFilter === "TND") return hasPromoInCurrency("TND");
+        if (currencyFilter === "CFA") return hasPromoInCurrency("CFA");
+        return true;
+      });
+    }
+
+    // Trier par ordre d'affichage
+    result.sort((a, b) => a.order - b.order);
+
+    setFilteredPacks(result);
+  }, [packs, searchQuery, statusFilter, popularityFilter, currencyFilter]);
+
+  // Compter les filtres actifs
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery) count++;
+    if (statusFilter !== "all") count++;
+    if (popularityFilter !== "all") count++;
+    if (currencyFilter !== "all") count++;
+    return count;
+  }, [searchQuery, statusFilter, popularityFilter, currencyFilter]);
+
   const handleOpenDialog = (pack?: Pack) => {
     if (pack) {
       setEditingPack(pack);
-
-      // Extraire les labels de promotion par devise
       const promoLabels = pack.promoLabel
         ? pack.promoLabel.split("|")
         : ["", "", ""];
@@ -228,7 +259,6 @@ export default function AdminPacksPage() {
     setIsSubmitting(true);
 
     try {
-      // Construire le promoLabel combiné (format: EUR|TND|CFA)
       const promoLabel = `${formData.promoLabelEUR || ""}|${
         formData.promoLabelTND || ""
       }|${formData.promoLabelCFA || ""}`;
@@ -333,109 +363,15 @@ export default function AdminPacksPage() {
     }
   };
 
-  // Fonction pour formater l'affichage des prix avec promotion
-  const formatPriceDisplay = (pack: Pack, currency: "EUR" | "TND" | "CFA") => {
-    const price =
-      currency === "EUR"
-        ? pack.priceEUR
-        : currency === "TND"
-        ? pack.priceTND
-        : pack.priceCFA;
-
-    const originalPrice =
-      currency === "EUR"
-        ? pack.originalPriceEUR
-        : currency === "TND"
-        ? pack.originalPriceTND
-        : pack.originalPriceCFA;
-
-    // Gérer les valeurs null
-    const safePrice = price ?? 0;
-    const safeOriginalPrice = originalPrice ?? 0;
-
-    const hasPromo = safeOriginalPrice > 0 && safeOriginalPrice > safePrice;
-
-    if (hasPromo) {
-      return (
-        <div className="flex flex-col">
-          <span className="text-sm text-muted-foreground line-through">
-            {safeOriginalPrice}
-            {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
-          </span>
-          <span className="font-medium text-green-600">
-            {safePrice}
-            {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
-          </span>
-        </div>
-      );
-    }
-
-    return (
-      <span className="font-medium">
-        {safePrice}
-        {currency === "EUR" ? "€" : currency === "TND" ? "DT" : "CFA"}
-      </span>
-    );
-  };
-
-  // Fonction pour extraire le label de promotion par devise
-  const getPromoLabel = (pack: Pack, currency: "EUR" | "TND" | "CFA") => {
-    if (!pack.promoLabel) return null;
-    const labels = pack.promoLabel.split("|");
-    const index = currency === "EUR" ? 0 : currency === "TND" ? 1 : 2;
-    return labels[index] || null;
-  };
-
-  // Fonctions helper pour accéder aux champs de manière type-safe
-  const getPromoDateValue = (currency: "EUR" | "TND" | "CFA"): string => {
-    switch (currency) {
-      case "EUR":
-        return formData.promoEndDateEUR;
-      case "TND":
-        return formData.promoEndDateTND;
-      case "CFA":
-        return formData.promoEndDateCFA;
-    }
-  };
-
-  const getPromoLabelValue = (currency: "EUR" | "TND" | "CFA"): string => {
-    switch (currency) {
-      case "EUR":
-        return formData.promoLabelEUR;
-      case "TND":
-        return formData.promoLabelTND;
-      case "CFA":
-        return formData.promoLabelCFA;
-    }
-  };
-
-  const getOriginalPriceValue = (
-    currency: "EUR" | "TND" | "CFA"
-  ): number | undefined => {
-    switch (currency) {
-      case "EUR":
-        return formData.originalPriceEUR;
-      case "TND":
-        return formData.originalPriceTND;
-      case "CFA":
-        return formData.originalPriceCFA;
-    }
-  };
-
-  const getIsPromoValue = (currency: "EUR" | "TND" | "CFA"): boolean => {
-    switch (currency) {
-      case "EUR":
-        return formData.isPromoEUR;
-      case "TND":
-        return formData.isPromoTND;
-      case "CFA":
-        return formData.isPromoCFA;
-    }
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setPopularityFilter("all");
+    setCurrencyFilter("all");
   };
 
   return (
     <div className="space-y-6">
-      {/* Titre et description */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">
           Gestion des packs tarifaires
@@ -446,14 +382,21 @@ export default function AdminPacksPage() {
         </p>
       </div>
 
-      {/* En-tête avec bouton */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        {isLoading ? (
-          <Skeleton className="h-10 w-48" />
-        ) : (
-          <div className="hidden sm:block"></div>
-        )}
-
+      {/* En-tête avec bouton et statistiques */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ">
+        {/* Barre de recherche et filtres */}
+        <SearchAndFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          popularityFilter={popularityFilter}
+          onPopularityFilterChange={setPopularityFilter}
+          currencyFilter={currencyFilter}
+          onCurrencyFilterChange={setCurrencyFilter}
+          onClearFilters={handleClearFilters}
+          activeFilterCount={activeFilterCount}
+        />{" "}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -466,304 +409,14 @@ export default function AdminPacksPage() {
                 {editingPack ? "Modifier le pack" : "Nouveau pack"}
               </DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="required">
-                    Nom du pack
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="order">Ordre d'affichage</Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    value={formData.order}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        order: parseInt(e.target.value) || 1,
-                      })
-                    }
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              {/* Section Prix Multi-devises */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border p-4 rounded-lg bg-muted/20">
-                <div className="space-y-2">
-                  <Label className="required text-xs uppercase font-bold flex items-center gap-1">
-                    <Euro className="h-3 w-3" /> Prix EUR (€)
-                  </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.priceEUR}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        priceEUR: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase font-bold flex items-center gap-1">
-                    <Currency className="h-3 w-3" /> Prix TND (DT)
-                  </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.priceTND}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        priceTND: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase font-bold flex items-center gap-1">
-                    <Coins className="h-3 w-3" /> Prix CFA (FCFA)
-                  </Label>
-                  <Input
-                    type="number"
-                    step="1"
-                    value={formData.priceCFA}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        priceCFA: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description" className="required">
-                  Description
-                </Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows={3}
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="features" className="required">
-                  Fonctionnalités (une par ligne)
-                </Label>
-                <Textarea
-                  id="features"
-                  rows={5}
-                  value={formData.features}
-                  onChange={(e) =>
-                    setFormData({ ...formData, features: e.target.value })
-                  }
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {/* Promotion section avec onglets pour chaque devise */}
-              <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Percent className="h-5 w-5 text-accent" />
-                  <h4 className="font-medium">Promotions par devise</h4>
-                </div>
-
-                <Tabs
-                  value={activePromoTab}
-                  onValueChange={(v) =>
-                    setActivePromoTab(v as "EUR" | "TND" | "CFA")
-                  }
-                >
-                  <TabsList className="grid grid-cols-3 w-full">
-                    <TabsTrigger
-                      value="EUR"
-                      className="flex items-center gap-1"
-                    >
-                      <Euro className="h-3 w-3" /> EUR
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="TND"
-                      className="flex items-center gap-1"
-                    >
-                      <Currency className="h-3 w-3" /> TND
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="CFA"
-                      className="flex items-center gap-1"
-                    >
-                      <Coins className="h-3 w-3" /> CFA
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {(["EUR", "TND", "CFA"] as const).map((currency) => (
-                    <TabsContent
-                      key={currency}
-                      value={currency}
-                      className="space-y-4 pt-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor={`isPromo${currency}`}>
-                          Activer la promotion pour {currency}
-                        </Label>
-                        <Switch
-                          id={`isPromo${currency}`}
-                          checked={getIsPromoValue(currency)}
-                          onCheckedChange={(c) => {
-                            const newFormData = { ...formData };
-                            switch (currency) {
-                              case "EUR":
-                                newFormData.isPromoEUR = c;
-                                break;
-                              case "TND":
-                                newFormData.isPromoTND = c;
-                                break;
-                              case "CFA":
-                                newFormData.isPromoCFA = c;
-                                break;
-                            }
-                            setFormData(newFormData);
-                          }}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-
-                      {getIsPromoValue(currency) && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs">
-                              Prix original (
-                              {currency === "EUR"
-                                ? "€"
-                                : currency === "TND"
-                                ? "DT"
-                                : "CFA"}
-                              )
-                            </Label>
-                            <Input
-                              type="number"
-                              step={currency === "CFA" ? "1" : "0.01"}
-                              value={getOriginalPriceValue(currency) || ""}
-                              onChange={(e) => {
-                                const newFormData = { ...formData };
-                                const value = e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : undefined;
-                                switch (currency) {
-                                  case "EUR":
-                                    newFormData.originalPriceEUR = value;
-                                    break;
-                                  case "TND":
-                                    newFormData.originalPriceTND = value;
-                                    break;
-                                  case "CFA":
-                                    newFormData.originalPriceCFA = value;
-                                    break;
-                                }
-                                setFormData(newFormData);
-                              }}
-                              placeholder={`Prix avant réduction`}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs">Label promotion</Label>
-                            <Input
-                              placeholder="Ex: -15%"
-                              value={getPromoLabelValue(currency)}
-                              onChange={(e) => {
-                                const newFormData = { ...formData };
-                                switch (currency) {
-                                  case "EUR":
-                                    newFormData.promoLabelEUR = e.target.value;
-                                    break;
-                                  case "TND":
-                                    newFormData.promoLabelTND = e.target.value;
-                                    break;
-                                  case "CFA":
-                                    newFormData.promoLabelCFA = e.target.value;
-                                    break;
-                                }
-                                setFormData(newFormData);
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs">
-                              Date fin promotion
-                            </Label>
-                            <Input
-                              type="date"
-                              value={getPromoDateValue(currency)}
-                              onChange={(e) => {
-                                const newFormData = { ...formData };
-                                switch (currency) {
-                                  case "EUR":
-                                    newFormData.promoEndDateEUR =
-                                      e.target.value;
-                                    break;
-                                  case "TND":
-                                    newFormData.promoEndDateTND =
-                                      e.target.value;
-                                    break;
-                                  case "CFA":
-                                    newFormData.promoEndDateCFA =
-                                      e.target.value;
-                                    break;
-                                }
-                                setFormData(newFormData);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <Label>Marquer comme populaire</Label>
-                <Switch
-                  checked={formData.isPopular}
-                  onCheckedChange={(c) =>
-                    setFormData({ ...formData, isPopular: c })
-                  }
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <Label>Pack actif (visible)</Label>
-                <Switch
-                  checked={formData.isActive}
-                  onCheckedChange={(c) =>
-                    setFormData({ ...formData, isActive: c })
-                  }
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
+            <PackForm
+              formData={formData}
+              setFormData={setFormData}
+              editingPack={editingPack}
+              isSubmitting={isSubmitting}
+              activePromoTab={activePromoTab}
+              setActivePromoTab={setActivePromoTab}
+            />
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
@@ -780,276 +433,22 @@ export default function AdminPacksPage() {
         </Dialog>
       </div>
 
-      {/* Tableau */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">Ordre</TableHead>
-                <TableHead>Pack</TableHead>
-                <TableHead>Prix (EUR/TND/CFA)</TableHead>
-                <TableHead>Promotions</TableHead>
-                <TableHead>Fonctionnalités</TableHead>
-                <TableHead>Statuts</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Skeleton className="h-4 w-4" />
-                        <Skeleton className="h-4 w-6" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-3 w-48" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="h-3 w-24" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Skeleton className="h-5 w-20 rounded-full" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Skeleton className="h-5 w-20 rounded-full" />
-                        <Skeleton className="h-5 w-16 rounded-full" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Skeleton className="h-5 w-12 rounded-full" />
-                        <Skeleton className="h-5 w-10 rounded-full" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : packs.length > 0 ? (
-                packs
-                  .sort((a, b) => a.order - b.order)
-                  .map((pack) => (
-                    <TableRow key={pack.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
-                          <span className="font-mono">{pack.order}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">{pack.name}</p>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {pack.description}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Euro className="h-3 w-3 text-muted-foreground" />
-                            {formatPriceDisplay(pack, "EUR")}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Currency className="h-3 w-3 text-muted-foreground" />
-                            {formatPriceDisplay(pack, "TND")}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Coins className="h-3 w-3 text-muted-foreground" />
-                            {formatPriceDisplay(pack, "CFA")}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          {getPromoLabel(pack, "EUR") && (
-                            <Badge
-                              variant="outline"
-                              className="bg-blue-50 text-blue-700 border-blue-200"
-                            >
-                              <Euro className="h-3 w-3 mr-1" />{" "}
-                              {getPromoLabel(pack, "EUR")}
-                            </Badge>
-                          )}
-                          {getPromoLabel(pack, "TND") && (
-                            <Badge
-                              variant="outline"
-                              className="bg-green-50 text-green-700 border-green-200"
-                            >
-                              <Currency className="h-3 w-3 mr-1" />{" "}
-                              {getPromoLabel(pack, "TND")}
-                            </Badge>
-                          )}
-                          {getPromoLabel(pack, "CFA") && (
-                            <Badge
-                              variant="outline"
-                              className="bg-purple-50 text-purple-700 border-purple-200"
-                            >
-                              <Coins className="h-3 w-3 mr-1" />{" "}
-                              {getPromoLabel(pack, "CFA")}
-                            </Badge>
-                          )}
-                          {!getPromoLabel(pack, "EUR") &&
-                            !getPromoLabel(pack, "TND") &&
-                            !getPromoLabel(pack, "CFA") && (
-                              <span className="text-xs text-muted-foreground">
-                                Aucune promo
-                              </span>
-                            )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {pack.features.slice(0, 2).map((f, i) => (
-                            <Badge
-                              key={i}
-                              variant="secondary"
-                              className="text-[10px]"
-                            >
-                              {f.substring(0, 15)}...
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          <Badge
-                            variant={pack.isActive ? "default" : "secondary"}
-                          >
-                            {pack.isActive ? "Actif" : "Inactif"}
-                          </Badge>
-                          {pack.isPopular && (
-                            <Badge variant="outline">
-                              <Star className="h-3 w-3 mr-1" /> Pop
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(pack)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => togglePopular(pack)}
-                          >
-                            <Star
-                              className={`h-4 w-4 ${
-                                pack.isPopular
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : ""
-                              }`}
-                            />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleActive(pack)}
-                          >
-                            <Switch
-                              checked={pack.isActive}
-                              className="h-4 w-4"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteClick(pack)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <div className="space-y-2">
-                      <p className="text-muted-foreground">Aucun pack trouvé</p>
-                      <p className="text-sm text-muted-foreground">
-                        Créez votre premier pack tarifaire pour commencer
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <PacksTable
+        packs={filteredPacks}
+        isLoading={isLoading}
+        onEdit={handleOpenDialog}
+        onDelete={handleDeleteClick}
+        onToggleActive={toggleActive}
+        onTogglePopular={togglePopular}
+      />
 
-      {/* Dialog de confirmation pour la suppression */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Confirmer la suppression
-            </DialogTitle>
-            <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer le pack{" "}
-              <span className="font-semibold text-foreground">
-                {packToDelete?.name}
-              </span>
-              ? Cette action est irréversible et supprimera définitivement le
-              pack.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
-              <p className="text-sm text-amber-700">
-                Attention : Cette action ne peut pas être annulée. Toutes les
-                données associées à ce pack seront définitivement supprimées.
-              </p>
-            </div>
-          </div>
-          <DialogFooter className="flex sm:justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              Annuler
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Suppression..." : "Supprimer définitivement"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        packToDelete={packToDelete}
+        isDeleting={isDeleting}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
