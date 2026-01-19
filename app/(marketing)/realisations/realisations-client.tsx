@@ -65,7 +65,7 @@ export default function RealisationsClient({ projects }: Props) {
   return (
     <main>
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="pt-38 pb-4 bg-soporis-white">
+      {/* <nav aria-label="Breadcrumb" className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <ol className="flex items-center justify-center gap-2 text-sm text-muted-foreground list-none p-0">
             <li className="flex items-center gap-2">
@@ -82,10 +82,10 @@ export default function RealisationsClient({ projects }: Props) {
             </li>
           </ol>
         </div>
-      </nav>
+      </nav> */}
 
       {/* Header - Sémantique <header> */}
-      <header className="pb-12 pt-4 bg-background text-center">
+      <header className="pb-12 pt-38 bg-background text-center">
         <AnimatedSection>
           <h1 className="font-display text-4xl font-bold text-primary mb-4">
             Nos réalisations{" "}

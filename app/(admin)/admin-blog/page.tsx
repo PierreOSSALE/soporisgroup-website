@@ -112,11 +112,12 @@ export default function AdminBlogPage() {
       </Card>
 
       {/* Dialog pour créer/modifier */}
+
       <BlogDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         editingBlog={editingBlog}
-        authors={authors}
+        initialAuthors={authors || []}
         onSuccess={handleSuccess}
       />
     </div>

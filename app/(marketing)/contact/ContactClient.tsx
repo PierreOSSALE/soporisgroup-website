@@ -94,7 +94,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <div className="pt-38 pb-4 bg-soporis-white">
+      {/* <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -108,10 +108,10 @@ export default function ContactPage() {
             <span className="text-soporis-navy font-medium">Contact</span>
           </nav>
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
-      <div className="pb-12 pt-4 bg-background">
+      <div className="pb-12 pt-38 bg-background">
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-4">
           <div className="container mx-auto px-4 text-center">
             <h1 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">

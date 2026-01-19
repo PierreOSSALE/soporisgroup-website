@@ -54,6 +54,7 @@ model Author {
   id        String    @id @default(cuid())
   name      String
   avatar    String
+  bio       String?   // Ajout bio optionnel
   blogPosts BlogPost[]
 
   @@map("authors")

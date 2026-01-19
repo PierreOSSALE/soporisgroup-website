@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function PacksPage() {
   return (
     <>
-      <div className="pt-38 pb-4 bg-soporis-white">
+      {/* <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -29,9 +29,9 @@ export default function PacksPage() {
             </span>
           </nav>
         </div>
-      </div>
+      </div> */}
 
-      <PacksSection className="bg-background" margin="-mt-18" />
+      <PacksSection className="bg-background" margin="-mt-18 pt-38" />
     </>
   );
 }

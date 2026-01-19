@@ -275,7 +275,7 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -286,9 +286,10 @@ export default function MarketingLayout({
       <meta name="geo.position" content="48.8566;2.3522" />
       <meta name="ICBM" content="48.8566, 2.3522" />
       <TooltipProvider>
-        <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
+        {/* SUPPRIMER le div flex-col parent */}
+        <div>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="min-h-screen">{children}</main>
           {/* <WhatsAppButton /> */}
           <Chatbot />
           <Footer />
@@ -296,6 +297,6 @@ export default function MarketingLayout({
           <Sonner />
         </div>
       </TooltipProvider>
-    </div>
+    </>
   );
 }

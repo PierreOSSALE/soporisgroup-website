@@ -64,7 +64,7 @@ const CancelAppointment = () => {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-38 pb-4 bg-soporis-white">
+      {/* <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -76,9 +76,9 @@ const CancelAppointment = () => {
             </Link>
           </nav>
         </div>
-      </div>
+      </div> */}
 
-      <div className="min-h-[70vh] flex items-center justify-center py-20 px-4">
+      <div className="min-h-[70vh] flex items-center justify-center pt-38 pb-20 px-4">
         <AnimatedSection className="max-w-lg w-full">
           {status === "loading" && (
             <Card className="text-center">

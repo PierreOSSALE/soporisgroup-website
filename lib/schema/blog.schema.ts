@@ -1,9 +1,15 @@
 //lib/schema/blog.schema.ts
+// lib/schema/blog.schema.ts
 import { z } from "zod";
 
 export const authorSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   avatar: z.string().url("URL d'avatar invalide"),
+  bio: z.string().optional(),
+});
+
+export const authorCreateSchema = authorSchema.extend({
+  id: z.string().optional(),
 });
 
 export const commentSchema = z.object({
@@ -44,6 +50,7 @@ export const blogPostSchema = z.object({
   published: z.boolean().default(false),
   publishedAt: z.date().nullable().optional(),
   authorId: z.string().min(1, "L'auteur est requis"),
+  authorInput: authorCreateSchema.optional(), // Nouveau champ pour l'auteur
   tableOfContents: z.array(z.string()).default([]),
 });
 
@@ -59,6 +66,7 @@ export const blogPostUpdateSchema = blogPostSchema.partial().extend({
 });
 
 export type AuthorInput = z.infer<typeof authorSchema>;
+export type AuthorCreateInput = z.infer<typeof authorCreateSchema>;
 export type CommentInput = z.infer<typeof commentSchema>;
 export type BlogPostInput = z.infer<typeof blogPostSchema>;
 export type BlogPostCreateInput = z.infer<typeof blogPostCreateSchema>;

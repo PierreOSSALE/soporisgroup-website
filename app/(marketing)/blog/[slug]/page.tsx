@@ -16,27 +16,29 @@ import {
 import { getCommentsByPostId } from "@/lib/actions/comment.actions";
 
 interface BlogDetailPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
-  const post = await getBlogPostBySlug(params.slug);
+  // Déballer la promesse params
+  const { slug } = await params;
+
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  // Incrémenter les vues
   await incrementBlogPostViews(post.id);
-  const recommendedPosts = await getRecommendedPosts(params.slug);
+  const recommendedPosts = await getRecommendedPosts(slug);
 
   // Récupérer les commentaires approuvés
   const comments = await getCommentsByPostId(post.id);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-34">
       {/* Back Button */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <Link
@@ -84,12 +86,12 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
         />
       </div>
 
-      {/* Content Layout */}
+      {/* Content Layout - EXACTEMENT comme React version */}
       <div className="max-w-6xl mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar */}
           <aside className="lg:col-span-3 order-2 lg:order-1">
-            <div className="sticky top-8 space-y-8">
+            <div className="sticky top-38 space-y-8">
               <TableOfContents
                 items={
                   Array.isArray(post.tableOfContents)

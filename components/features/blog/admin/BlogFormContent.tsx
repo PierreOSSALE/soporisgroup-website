@@ -1,4 +1,5 @@
 // components/admin/blog/BlogFormContent.tsx
+// components/admin/blog/BlogFormContent.tsx
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AuthorSelector from "./AuthorSelector";
 
 interface BlogFormContentProps {
   formData: any;
@@ -73,31 +75,18 @@ const BlogFormContent = ({
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="authorId">Auteur *</Label>
-          <Select
+          <AuthorSelector
             value={formData.authorId}
-            onValueChange={(value) =>
-              onFormDataChange({ ...formData, authorId: value })
+            onAuthorChange={(authorId) =>
+              onFormDataChange({ ...formData, authorId })
             }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionnez un auteur" />
-            </SelectTrigger>
-            <SelectContent>
-              {authors.map((author) => (
-                <SelectItem key={author.id} value={author.id}>
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={author.avatar}
-                      alt={author.name}
-                      className="w-6 h-6 rounded-full"
-                    />
-                    {author.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onNewAuthor={(author) => {
+              // Mettre à jour la liste locale des auteurs
+              if (!authors.find((a) => a.id === author.id)) {
+                authors.push(author);
+              }
+            }}
+          />
         </div>
       </div>
 

@@ -196,7 +196,7 @@ const RendezVousPage = () => {
     return (
       <>
         {/* Breadcrumb */}
-        <div className="pt-38 pb-4 bg-amber-500">
+        {/* <div className="pt-38 pb-4 bg-amber-500">
           <div className="container mx-auto px-4">
             <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Link
@@ -210,10 +210,10 @@ const RendezVousPage = () => {
               <span className="text-soporis-navy font-medium">Rendez-vous</span>
             </nav>
           </div>
-        </div>
+        </div> */}
 
         {/* Confirmation */}
-        <div className="min-h-[70vh] flex items-center justify-center py-20 px-4">
+        <div className="min-h-[70vh] flex items-center justify-center pt-38 pb-20 px-4">
           <AnimatedSection className="text-center max-w-lg">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <Check className="h-10 w-10 text-green-600" />

@@ -42,7 +42,7 @@ export default function AboutPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-38 pb-4 bg-soporis-white">
+      {/* <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -55,10 +55,10 @@ export default function AboutPage() {
             <span className="text-soporis-navy font-medium">À propos</span>
           </nav>
         </div>
-      </div>
+      </div> */}
 
       {/* Header Section */}
-      <div className="py-12 bg-background">
+      <div className="pt-38 pb-12 bg-background">
         <div className="container mx-auto px-4 text-center">
           <AnimatedSection className="max-w-2xl mx-auto mb-4">
             <h1 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">

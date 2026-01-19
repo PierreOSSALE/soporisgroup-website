@@ -14,7 +14,7 @@ export default function PolitiqueConfidentialitePage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="pt-38 pb-4 bg-soporis-white">
+      {/* <div className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -29,10 +29,10 @@ export default function PolitiqueConfidentialitePage() {
             </span>
           </nav>
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
-      <div className="pt-8 pb-4 bg-background">
+      <div className="pt-38 pb-4 bg-background">
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-4 text-primary">
             <Lock className="w-6 h-6" />

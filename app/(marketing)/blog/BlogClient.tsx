@@ -15,6 +15,8 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import Link from "next/link";
+import { Home, ChevronRight, ChevronLeft } from "lucide-react";
 
 const POSTS_PER_PAGE = 6;
 
@@ -161,11 +163,21 @@ const BlogClient = ({ initialPosts, categories }: BlogClientProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
+    <div className="min-h-screen bg-background pt-38 ">
+      {/* Back Button */}
+      <div className="max-w-325 mx-auto  pb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Accueil
+        </Link>
+      </div>
+      <div className="max-w-7xl bg-background mx-auto px-4 pb-8 md:pb-12">
         {/* Hero Section */}
         {featuredPost && (
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          <section className="grid grid-cols-1 mad:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
             <div className="lg:col-span-2">
               <HeroPost post={featuredPost} />
             </div>

@@ -75,9 +75,6 @@ const TableOfContents = ({ items, className }: TableOfContentsProps) => {
 
   return (
     <nav className={cn("space-y-1", className)}>
-      <h3 className="text-sm font-semibold text-foreground mb-2">
-        Table des matières
-      </h3>
       <div className="space-y-0.5">
         {visibleItems.map((item, index) => {
           const isActive = activeId === item;
@@ -86,15 +83,15 @@ const TableOfContents = ({ items, className }: TableOfContentsProps) => {
               key={index}
               onClick={() => scrollToSection(item)}
               className={cn(
-                "flex items-center gap-1.5 w-full text-left py-1.5 px-2 rounded-md text-sm transition-all duration-200",
+                "flex items-center gap-1.5 w-full text-left py-1.5 px-2 rounded-md text-sm transition-all duration-200 cursor-pointer",
                 isActive
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               aria-current={isActive ? "true" : "false"}
             >
-              {isActive && <ChevronRight className="w-3 h-3 shrink-0" />}
-              <span className={cn("truncate", isActive ? "ml-0" : "ml-4")}>
+              {isActive}
+              <span className={cn("truncate", isActive ? "ml-0" : "")}>
                 {item}
               </span>
             </button>

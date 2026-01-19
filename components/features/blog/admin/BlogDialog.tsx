@@ -13,13 +13,17 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import BlogFormContent from "./BlogFormContent";
-import { createBlogPost, updateBlogPost } from "@/lib/actions/blog.actions";
+import {
+  createBlogPost,
+  updateBlogPost,
+  getAuthors,
+} from "@/lib/actions/blog.actions";
 
 interface BlogDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingBlog: any | null;
-  authors: any[];
+  initialAuthors: any[];
   onSuccess: () => void;
 }
 
@@ -27,7 +31,7 @@ const BlogDialog = ({
   open,
   onOpenChange,
   editingBlog,
-  authors,
+  initialAuthors,
   onSuccess,
 }: BlogDialogProps) => {
   const [formData, setFormData] = useState({
@@ -42,6 +46,7 @@ const BlogDialog = ({
     published: false,
     tableOfContents: [] as string[],
   });
+  const [authors, setAuthors] = useState(initialAuthors || []); // Ajout de la valeur par défaut
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -56,6 +61,24 @@ const BlogDialog = ({
     "Technology",
     "Features",
   ];
+
+  // Charger les auteurs si nécessaire
+  useEffect(() => {
+    if (open && Array.isArray(authors) && authors.length === 0) {
+      // Vérification ajoutée
+      loadAuthors();
+    }
+  }, [open]);
+
+  const loadAuthors = async () => {
+    try {
+      const fetchedAuthors = await getAuthors();
+      setAuthors(fetchedAuthors || []); // Valeur par défaut
+    } catch (error) {
+      console.error("Erreur chargement auteurs:", error);
+      setAuthors([]); // Assurer que c'est un tableau en cas d'erreur
+    }
+  };
 
   useEffect(() => {
     if (editingBlog) {
@@ -167,11 +190,11 @@ const BlogDialog = ({
           formData={formData}
           onFormDataChange={setFormData}
           onTitleChange={handleTitleChange}
-          authors={authors}
+          authors={authors || []} // Assurer que c'est toujours un tableau
           categories={categories}
         />
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-4 border-t">
           <div className="flex items-center space-x-2">
             <Switch
               id="published"

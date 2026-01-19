@@ -47,7 +47,7 @@ export default async function ServicesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <nav aria-label="Fil d'ariane" className="pt-38 pb-4 bg-soporis-white">
+      {/* <nav aria-label="Fil d'ariane" className="pt-38 pb-4 bg-soporis-white">
         <div className="container mx-auto px-4">
           <ol className="flex items-center justify-center gap-2 text-sm text-muted-foreground list-none p-0">
             <li className="flex items-center gap-2">
@@ -64,13 +64,13 @@ export default async function ServicesPage() {
             </li>
           </ol>
         </div>
-      </nav>
+      </nav> */}
 
       {/* On passe les services récupérés en prop */}
       <Services
         initialServices={initialServices}
         className="bg-background"
-        margin="-mt-18"
+        margin="-mt-18 pt-38"
       />
     </>
   );

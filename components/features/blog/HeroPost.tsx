@@ -14,7 +14,7 @@ interface HeroPostProps {
 const HeroPost = ({ post }: HeroPostProps) => {
   return (
     <Link href={`/blog/${post.slug}`} className="block">
-      <div className="relative rounded-2xl overflow-hidden aspect-4/3 group">
+      <div className="relative rounded-2xl overflow-hidden aspect-3/2 group">
         <img
           src={post.image}
           alt={post.title}
