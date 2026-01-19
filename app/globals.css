@@ -301,6 +301,46 @@
   }
 }
 
+/*===== Components =====*/
+
+@layer components {
+  .blog-badge {
+    @apply inline-flex items-center px-3 py-1 text-xs font-medium rounded-full;
+    background: hsl(var(--blog-badge));
+    color: hsl(var(--blog-badge-foreground));
+  }
+
+  .blog-card {
+    @apply rounded-lg overflow-hidden bg-card transition-shadow duration-200;
+    box-shadow: var(--blog-card-shadow);
+  }
+
+  .blog-card:hover {
+    box-shadow: var(--blog-card-shadow-hover);
+  }
+
+  .blog-hero-overlay {
+    background: var(--blog-overlay);
+  }
+
+  .blog-prose h2 {
+    @apply text-xl font-semibold mt-8 mb-4 text-foreground;
+  }
+
+  .blog-prose p {
+    @apply text-muted-foreground leading-relaxed mb-4;
+  }
+
+  .blog-prose ul,
+  .blog-prose ol {
+    @apply text-muted-foreground leading-relaxed mb-4 ml-6;
+  }
+
+  .blog-prose li {
+    @apply mb-2;
+  }
+}
+
 /* ===== ANIMATIONS ===== */
 
 @keyframes float {

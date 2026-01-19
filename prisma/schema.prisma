@@ -32,13 +32,12 @@ enum AppointmentStatus {
   completed
 }
 
-
-// prisma/schema.prisma
+// Modèle utilisateur
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
-  image        String?  // C'est le champ correct, pas avatar
+  image        String?
   role         UserRole @default(user)
   isActive     Boolean  @default(true) @map("is_active")
   supabaseId   String?  @unique @map("supabase_id")
@@ -48,6 +47,53 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+// Modèle auteur pour les articles de blog
+model Author {
+  id        String    @id @default(cuid())
+  name      String
+  avatar    String
+  blogPosts BlogPost[]
+
+  @@map("authors")
+}
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    String
+  email     String
+  content   String   @db.Text
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("comments")
+}
+
+// Modèle article de blog (remplace BlogArticle)
+model BlogPost {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  excerpt         String
+  content         String   @db.Text
+  category        String
+  image           String
+  readTime        Int      @default(5) @map("read_time")
+  views           Int      @default(0)
+  published       Boolean  @default(false)
+  publishedAt     DateTime @map("published_at")
+  comments Comment[]
+
+  tableOfContents Json     @map("table_of_contents")
+  authorId        String
+  author          Author   @relation(fields: [authorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("blog_posts")
 }
 
 model FAQ {
@@ -89,7 +135,6 @@ model Project {
   @@map("projects")
 }
 
-
 model Service {
   id          String   @id @default(uuid())
   title       String
@@ -106,24 +151,6 @@ model Service {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("services")
-}
-
-model BlogArticle {
-  id         String   @id @default(uuid())
-  title      String
-  slug       String   @unique
-  excerpt    String
-  content    String   @db.Text
-  imageUrl   String?  @map("image_url")
-  category   String
-  readTime   String   @default("5 min") @map("read_time")
-  published  Boolean  @default(false)
-  author     String
-  views      Int      @default(0)
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  @@map("blog_articles")
 }
 
 model Pack {
@@ -157,6 +184,7 @@ model Pack {
 
   @@map("packs")
 }
+
 model Testimonial {
   id        String   @id @default(uuid())
   author    String
@@ -227,4 +255,3 @@ model BlockedDate {
 
   @@map("blocked_dates")
 }
-

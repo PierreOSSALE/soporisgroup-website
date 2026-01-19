@@ -3,55 +3,138 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { blogSchema, BlogInput } from "@/lib/schema/blog.schema";
+import {
+  blogPostCreateSchema,
+  blogPostUpdateSchema,
+  authorSchema,
+  type BlogPostCreateInput,
+  type BlogPostUpdateInput,
+  type AuthorInput,
+} from "@/lib/schema/blog.schema";
 
-export async function createBlogArticle(data: BlogInput) {
-  const validated = blogSchema.safeParse(data);
+// === AUTHORS ===
+export async function createAuthor(data: AuthorInput) {
+  const validated = authorSchema.safeParse(data);
   if (!validated.success) {
     throw new Error(validated.error.issues[0].message);
   }
 
   try {
-    const blogArticle = await prisma.blogArticle.create({
+    const author = await prisma.author.create({
       data: validated.data,
+    });
+    revalidatePath("/admin/authors");
+    return author;
+  } catch (error) {
+    throw new Error("Erreur lors de la création de l'auteur");
+  }
+}
+
+export async function getAuthors() {
+  try {
+    const authors = await prisma.author.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { blogPosts: true },
+        },
+      },
+    });
+    return authors;
+  } catch (error) {
+    throw new Error("Erreur lors de la récupération des auteurs");
+  }
+}
+
+export async function getAuthorWithPosts(authorId: string) {
+  try {
+    const author = await prisma.author.findUnique({
+      where: { id: authorId },
+      include: {
+        blogPosts: {
+          orderBy: { publishedAt: "desc" },
+        },
+      },
+    });
+    return author;
+  } catch (error) {
+    throw new Error("Erreur lors de la récupération de l'auteur");
+  }
+}
+
+// === BLOG POSTS ===
+export async function createBlogPost(data: BlogPostCreateInput) {
+  const validated = blogPostCreateSchema.safeParse(data);
+  if (!validated.success) {
+    throw new Error(validated.error.issues[0].message);
+  }
+
+  try {
+    const createData: any = { ...validated.data };
+
+    // Si l'article est publié, on met la date actuelle
+    if (validated.data.published) {
+      createData.publishedAt = new Date();
+    }
+
+    const blogPost = await prisma.blogPost.create({
+      data: createData,
+      include: {
+        author: true,
+      },
     });
     revalidatePath("/admin/blog");
     revalidatePath("/blog");
-    return blogArticle;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("Unique constraint")) {
+    return blogPost;
+  } catch (error: any) {
+    if (error.code === "P2002") {
       throw new Error("Un article avec ce slug existe déjà");
     }
     throw new Error("Erreur lors de la création de l'article");
   }
 }
 
-export async function updateBlogArticle(id: string, data: Partial<BlogInput>) {
-  const validated = blogSchema.partial().safeParse(data);
+export async function updateBlogPost(id: string, data: BlogPostUpdateInput) {
+  const validated = blogPostUpdateSchema.safeParse(data);
   if (!validated.success) {
     throw new Error(validated.error.issues[0].message);
   }
 
   try {
-    const blogArticle = await prisma.blogArticle.update({
+    const updateData: any = { ...validated.data };
+
+    // Si on publie l'article, définir la date de publication
+    if (updateData.published === true) {
+      updateData.publishedAt = new Date();
+    }
+    // Si on dépublie, enlever la date de publication
+    else if (updateData.published === false) {
+      updateData.publishedAt = null;
+    }
+
+    const blogPost = await prisma.blogPost.update({
       where: { id },
-      data: validated.data,
+      data: updateData,
+      include: {
+        author: true,
+      },
     });
+
     revalidatePath("/admin/blog");
     revalidatePath("/blog");
-    revalidatePath(`/blog/${blogArticle.slug}`);
-    return blogArticle;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("Unique constraint")) {
+    revalidatePath(`/blog/${blogPost.slug}`);
+    return blogPost;
+  } catch (error: any) {
+    if (error.code === "P2002") {
       throw new Error("Un article avec ce slug existe déjà");
     }
     throw new Error("Erreur lors de la mise à jour de l'article");
   }
 }
 
-export async function deleteBlogArticle(id: string) {
+export async function deleteBlogPost(id: string) {
   try {
-    await prisma.blogArticle.delete({
+    await prisma.blogPost.delete({
       where: { id },
     });
     revalidatePath("/admin/blog");
@@ -61,48 +144,111 @@ export async function deleteBlogArticle(id: string) {
   }
 }
 
-export async function getBlogArticles() {
+export async function getBlogPosts() {
   try {
-    const articles = await prisma.blogArticle.findMany({
+    const posts = await prisma.blogPost.findMany({
+      include: {
+        author: true,
+      },
       orderBy: { createdAt: "desc" },
     });
-    return articles;
+    return posts;
   } catch (error) {
     throw new Error("Erreur lors de la récupération des articles");
   }
 }
 
-export async function getPublishedBlogArticles() {
+export async function getPublishedBlogPosts() {
   try {
-    const articles = await prisma.blogArticle.findMany({
-      where: { published: true },
-      orderBy: { createdAt: "desc" },
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        published: true,
+        publishedAt: { not: undefined },
+      },
+      include: {
+        author: true,
+      },
+      orderBy: { publishedAt: "desc" },
     });
-    return articles;
+    return posts;
   } catch (error) {
     throw new Error("Erreur lors de la récupération des articles publiés");
   }
 }
 
-export async function getBlogArticleBySlug(slug: string) {
+export async function getFeaturedBlogPosts(limit: number = 3) {
   try {
-    const article = await prisma.blogArticle.findUnique({
-      where: { slug, published: true },
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        published: true,
+        publishedAt: { not: undefined },
+      },
+      include: {
+        author: true,
+      },
+      orderBy: { views: "desc" },
+      take: limit,
+    });
+    return posts;
+  } catch (error) {
+    throw new Error("Erreur lors de la récupération des articles populaires");
+  }
+}
+
+export async function getBlogPostBySlug(slug: string) {
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: {
+        slug,
+        published: true,
+        publishedAt: { not: undefined },
+      },
+      include: {
+        author: true,
+      },
     });
 
-    if (!article) {
+    if (!post) {
       throw new Error("Article non trouvé");
     }
 
-    return article;
+    return post;
   } catch (error) {
     console.error(`Erreur pour le slug ${slug}:`, error);
     throw new Error("Erreur lors de la récupération de l'article");
   }
 }
-export async function incrementBlogViews(id: string) {
+
+export async function getRecommendedPosts(
+  currentSlug: string,
+  limit: number = 3
+) {
   try {
-    const article = await prisma.blogArticle.update({
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        published: true,
+        publishedAt: { not: undefined },
+        slug: { not: currentSlug },
+      },
+      include: {
+        author: true,
+      },
+      orderBy: { views: "desc" },
+      take: limit,
+    });
+    return posts;
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des articles recommandés:",
+      error
+    );
+    return [];
+  }
+}
+
+export async function incrementBlogPostViews(id: string) {
+  try {
+    const post = await prisma.blogPost.update({
       where: { id },
       data: {
         views: {
@@ -110,8 +256,47 @@ export async function incrementBlogViews(id: string) {
         },
       },
     });
-    return article;
+    return post;
   } catch (error) {
     console.error("Erreur lors de l'incrémentation des vues:", error);
+  }
+}
+
+export async function getBlogPostsByCategory(category: string) {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        category,
+        published: true,
+        publishedAt: { not: undefined },
+      },
+      include: {
+        author: true,
+      },
+      orderBy: { publishedAt: "desc" },
+    });
+    return posts;
+  } catch (error) {
+    throw new Error(
+      "Erreur lors de la récupération des articles par catégorie"
+    );
+  }
+}
+
+export async function getBlogCategories() {
+  try {
+    const categories = await prisma.blogPost.groupBy({
+      by: ["category"],
+      where: {
+        published: true,
+        publishedAt: { not: undefined },
+      },
+      _count: {
+        category: true,
+      },
+    });
+    return categories.map((cat) => cat.category);
+  } catch (error) {
+    throw new Error("Erreur lors de la récupération des catégories");
   }
 }

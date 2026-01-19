@@ -9,11 +9,17 @@ import {
   Package,
 } from "lucide-react";
 import { getProjects } from "@/lib/actions/project.actions";
-import { getBlogArticles } from "@/lib/actions/blog.actions";
+import { getBlogPosts } from "@/lib/actions/blog.actions";
 import { getServices } from "@/lib/actions/service.actions";
 import { getPacks } from "@/lib/actions/pack.actions";
 import { Suspense } from "react";
 import DashboardSkeleton from "@/components/skeletons/admin-dashboard-skeleton";
+import type {
+  DashboardProject,
+  DashboardBlogPost,
+  DashboardService,
+  DashboardPack,
+} from "@/types/dashboard";
 
 // Fonction pour formater la date
 const formatDate = (date: Date) => {
@@ -27,10 +33,10 @@ const formatDate = (date: Date) => {
 // Composant pour les statistiques
 async function StatsCards() {
   const [projects, blogs, services, packs] = await Promise.all([
-    getProjects(),
-    getBlogArticles(),
-    getServices(),
-    getPacks(),
+    getProjects() as unknown as DashboardProject[],
+    getBlogPosts() as unknown as DashboardBlogPost[],
+    getServices() as unknown as DashboardService[],
+    getPacks() as unknown as DashboardPack[],
   ]);
 
   const publishedProjects = projects.filter(
@@ -109,7 +115,7 @@ async function StatsCards() {
 
 // Composant pour les projets récents
 async function RecentProjectsCard() {
-  const projects = await getProjects();
+  const projects = (await getProjects()) as unknown as DashboardProject[];
   const recentProjects = projects
     .sort(
       (a, b) =>
@@ -168,7 +174,7 @@ async function RecentProjectsCard() {
 
 // Composant pour les articles populaires
 async function PopularArticlesCard() {
-  const blogs = await getBlogArticles();
+  const blogs = (await getBlogPosts()) as unknown as DashboardBlogPost[];
   const popularArticles = blogs
     .filter((blog) => blog.published)
     .sort((a, b) => (b.views || 0) - (a.views || 0))
@@ -205,7 +211,7 @@ async function PopularArticlesCard() {
 
 // Composant pour les promotions actives
 async function ActivePromotionsCard() {
-  const packs = await getPacks();
+  const packs = (await getPacks()) as unknown as DashboardPack[];
   const activePromos = packs.filter((p) => p.isPromo && p.isActive);
 
   return (
@@ -235,6 +241,9 @@ async function ActivePromotionsCard() {
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold">
                     {pack.priceEUR ?? pack.priceTND ?? pack.priceCFA ?? "N/A"}
+                    {pack.priceEUR && "€"}
+                    {pack.priceTND && " DT"}
+                    {pack.priceCFA && " FCFA"}
                   </span>
                   {pack.originalPriceEUR && (
                     <span className="text-sm text-muted-foreground line-through">

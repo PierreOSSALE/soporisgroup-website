@@ -196,7 +196,7 @@ const RendezVousPage = () => {
     return (
       <>
         {/* Breadcrumb */}
-        <div className="pt-38 pb-4 bg-soporis-white">
+        <div className="pt-38 pb-4 bg-amber-500">
           <div className="container mx-auto px-4">
             <nav className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Link
