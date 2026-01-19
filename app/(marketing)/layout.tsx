@@ -289,7 +289,9 @@ export default function MarketingLayout({
         {/* SUPPRIMER le div flex-col parent */}
         <div>
           <Header />
-          <main className="min-h-screen">{children}</main>
+          <main className="min-h-screen overflow-x-hidden md:overflow-x-auto">
+            {children}
+          </main>
           {/* <WhatsAppButton /> */}
           <Chatbot />
           <Footer />
