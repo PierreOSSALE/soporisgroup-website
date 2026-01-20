@@ -204,7 +204,7 @@ export default function AssistantAppointments() {
       apt.timeSlot,
       getStatusLabel(apt.status),
       apt.message || "",
-      format(new Date(apt.createdAt), "dd/MM/yyyy HH:mm", { locale: fr }),
+      format(new Date(apt.created_at), "dd/MM/yyyy HH:mm", { locale: fr }),
     ]);
 
     const csvContent = [

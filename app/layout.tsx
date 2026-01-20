@@ -4,6 +4,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/provider";
 import { Providers } from "./providers";
+import SessionManager from "@/components/auth/SessionManager";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,7 +43,10 @@ export default function RootLayout({
     <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <Providers>{children}</Providers>{" "}
+          <Providers>
+            <SessionManager />
+            {children}
+          </Providers>
         </AuthProvider>
       </body>
     </html>

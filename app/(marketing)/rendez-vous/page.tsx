@@ -1,11 +1,9 @@
 // app/(marketing)/rendez-vous/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  Home,
-  ChevronRight,
   Calendar as CalendarIcon,
   Clock,
   Video,
@@ -14,6 +12,8 @@ import {
   Check,
   Loader2,
   Building2,
+  AlertCircle,
+  ArrowLeft, // Ajouté
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { createAppointment } from "@/lib/actions/appointment.actions";
 import { FaWhatsapp } from "react-icons/fa";
+import { useTimeSlots } from "@/hooks/useTimeSlots";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const meetingTypes = [
   {
@@ -47,6 +50,7 @@ const meetingTypes = [
     description: "Rencontre en visioconférence via Google Meet ou Zoom",
     duration: "30 min",
     value: "video",
+    durationMinutes: 30,
   },
   {
     icon: Phone,
@@ -54,6 +58,7 @@ const meetingTypes = [
     description: "Discussion rapide pour clarifier vos besoins",
     duration: "15 min",
     value: "phone",
+    durationMinutes: 15,
   },
   {
     icon: Users,
@@ -61,6 +66,7 @@ const meetingTypes = [
     description: "Session détaillée pour les projets complexes",
     duration: "60 min",
     value: "consultation",
+    durationMinutes: 60,
   },
 ];
 
@@ -73,93 +79,6 @@ const services = [
   "Autre",
 ];
 
-// Dates indisponibles (exemple)
-const unavailableDates = [
-  new Date(2024, 0, 1), // Nouvel an
-  new Date(2024, 11, 25), // Noël
-];
-
-// Horaires d'ouverture de l'agence
-const businessHours = {
-  mondayToFriday: {
-    open: 9, // 9h
-    close: 18, // 18h
-  },
-  saturday: {
-    open: 10, // 10h
-    close: 14, // 14h
-  },
-  sunday: {
-    open: null, // Fermé
-    close: null,
-  },
-};
-
-// Générer les créneaux horaires selon les horaires d'ouverture
-const generateTimeSlots = (
-  selectedDate: Date | undefined,
-  meetingDuration: number = 30
-): string[] => {
-  if (!selectedDate) return [];
-
-  const dayOfWeek = selectedDate.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
-  const isDateToday = isToday(selectedDate);
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-
-  let openHour: number;
-  let closeHour: number;
-
-  // Déterminer les heures d'ouverture selon le jour
-  if (dayOfWeek === 0) {
-    // Dimanche
-    return []; // Fermé
-  } else if (dayOfWeek === 6) {
-    // Samedi
-    openHour = businessHours.saturday.open;
-    closeHour = businessHours.saturday.close;
-  } else {
-    // Lundi à vendredi
-    openHour = businessHours.mondayToFriday.open;
-    closeHour = businessHours.mondayToFriday.close;
-  }
-
-  // Générer les créneaux
-  const slots: string[] = [];
-  const durationInHours = meetingDuration / 60;
-
-  for (let hour = openHour; hour < closeHour; hour += durationInHours) {
-    for (let minute = 0; minute < 60; minute += meetingDuration) {
-      // Vérifier si le créneau est dans les limites des heures d'ouverture
-      const slotHour = hour + minute / 60;
-      if (slotHour >= closeHour) break;
-
-      // Formater l'heure
-      const formattedHour = Math.floor(slotHour);
-      const formattedMinute = minute % 60;
-      const timeString = `${formattedHour
-        .toString()
-        .padStart(2, "0")}:${formattedMinute.toString().padStart(2, "0")}`;
-
-      // Si c'est aujourd'hui, filtrer les créneaux passés
-      if (isDateToday) {
-        const slotTimeInMinutes = formattedHour * 60 + formattedMinute;
-        const currentTimeInMinutes = currentHour * 60 + currentMinute;
-
-        // Ajouter un buffer de 30 minutes pour les rendez-vous du jour
-        if (slotTimeInMinutes > currentTimeInMinutes + 30) {
-          slots.push(timeString);
-        }
-      } else {
-        slots.push(timeString);
-      }
-    }
-  }
-
-  return slots;
-};
-
 const RendezVousPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -168,6 +87,8 @@ const RendezVousPage = () => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -176,61 +97,81 @@ const RendezVousPage = () => {
     service: "",
     message: "",
   });
+  const debouncedDate = useDebounce(selectedDate, 300);
 
   const { toast } = useToast();
+  const {
+    getAvailableSlotsForDate,
+    isDateAvailable,
+    loading: timeSlotsLoading,
+  } = useTimeSlots();
 
   // Obtenir la durée de la réunion selon le type sélectionné
   const getMeetingDuration = () => {
-    switch (selectedMeetingType) {
-      case "phone":
-        return 15;
-      case "consultation":
-        return 60;
-      default:
-        return 30; // video
-    }
+    const meetingType = meetingTypes.find(
+      (t) => t.value === selectedMeetingType
+    );
+    return meetingType?.durationMinutes || 30;
   };
 
-  // Générer les créneaux disponibles dynamiquement
-  const availableTimeSlots = useMemo(() => {
-    if (!selectedDate) return [];
-    return generateTimeSlots(selectedDate, getMeetingDuration());
-  }, [selectedDate, selectedMeetingType]);
+  // Charger les créneaux disponibles quand la date change
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAvailableSlots = async () => {
+      if (debouncedDate) {
+        setLoadingSlots(true);
+        try {
+          const slots = await getAvailableSlotsForDate(
+            debouncedDate,
+            getMeetingDuration()
+          );
+          if (isMounted) {
+            setAvailableSlots(slots);
+          }
+        } catch (error) {
+          console.error("Erreur lors du chargement des créneaux:", error);
+          if (isMounted) {
+            setAvailableSlots([]);
+          }
+        } finally {
+          if (isMounted) {
+            setLoadingSlots(false);
+          }
+        }
+      } else {
+        if (isMounted) {
+          setAvailableSlots([]);
+        }
+      }
+    };
+
+    fetchAvailableSlots();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [debouncedDate, selectedMeetingType]);
 
   // Dates disponibles
-  const isDateAvailable = (date: Date) => {
-    const today = startOfDay(new Date());
-    const selectedDay = startOfDay(date);
+  const isDateSelectable = useCallback(
+    (date: Date) => {
+      const today = startOfDay(new Date());
+      const selectedDay = startOfDay(date);
 
-    // Ne pas permettre les dates passées
-    if (isBefore(selectedDay, today)) return false;
+      // Ne pas permettre les dates passées
+      if (isBefore(selectedDay, today)) return false;
 
-    // Vérifier le jour de la semaine (0 = dimanche, 6 = samedi)
-    const day = date.getDay();
-
-    // Dimanche fermé
-    if (day === 0) return false;
-
-    // Vérifier les dates indisponibles (jours fériés)
-    return !unavailableDates.some((unavailable) => {
-      const unavailableDay = startOfDay(unavailable);
-      return (
-        unavailableDay.getDate() === selectedDay.getDate() &&
-        unavailableDay.getMonth() === selectedDay.getMonth() &&
-        unavailableDay.getFullYear() === selectedDay.getFullYear()
-      );
-    });
-  };
+      // Vérifier si la date est disponible via le hook
+      return isDateAvailable(date);
+    },
+    [isDateAvailable]
+  );
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     setSelectedTime("");
-    if (date) {
-      const slots = generateTimeSlots(date, getMeetingDuration());
-      if (slots.length > 0) {
-        setStep(1);
-      }
-    }
+    setStep(1); // Toujours revenir à l'étape 1 quand on change de date
   };
 
   const handleTimeSelect = (time: string) => {
@@ -244,7 +185,14 @@ const RendezVousPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDate || !selectedTime) return;
+    if (!selectedDate || !selectedTime) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une date et une heure",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -282,11 +230,11 @@ const RendezVousPage = () => {
           error.message || "Une erreur est survenue. Veuillez réessayer.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
-  // Section "Horaires d'ouverture"
   const OpeningHours = () => (
     <Card className="mb-8">
       <CardHeader>
@@ -303,25 +251,56 @@ const RendezVousPage = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Samedi</span>
-            <span className="font-medium">10h - 14h</span>
+            <span className="font-medium">9h - 14h</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Dimanche</span>
-            <span className="font-medium text-muted-foreground/70">Fermé</span>
+            <span className="font-medium">Fermé</span>
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">
-          <p>
+        <Alert className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-sm">
             Les créneaux sont générés automatiquement selon nos horaires
-            d'ouverture.
-          </p>
-          <p className="mt-1">
-            Pour aujourd'hui, les créneaux disponibles commencent dans 30
-            minutes.
-          </p>
-        </div>
+            d'ouverture. Pour aujourd'hui, les créneaux disponibles commencent
+            dans 30 minutes.
+          </AlertDescription>
+        </Alert>
       </CardContent>
     </Card>
+  );
+
+  const TimeSlotsSkeleton = () => (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="h-12 bg-linear-to-r from-gray-200 to-gray-300 rounded-lg animate-pulse"
+          />
+        ))}
+      </div>
+      <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto animate-pulse"></div>
+    </div>
+  );
+
+  const EmptyTimeSlots = ({ isToday }: { isToday: boolean }) => (
+    <div className="text-center py-8">
+      <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      <p className="text-muted-foreground mb-2">
+        Aucun créneau disponible pour cette date
+      </p>
+      {isToday && (
+        <p className="text-sm text-muted-foreground">
+          Les créneaux pour aujourd'hui commencent dans 30 minutes
+        </p>
+      )}
+    </div>
+  );
+
+  // Calculer le type de rendez-vous actuel
+  const currentMeetingType = meetingTypes.find(
+    (t) => t.value === selectedMeetingType
   );
 
   if (isConfirmed) {
@@ -410,19 +389,10 @@ const RendezVousPage = () => {
                 <div
                   onClick={() => {
                     setSelectedMeetingType(type.value);
-                    // Si une date est déjà sélectionnée, recalculer les créneaux
+                    // Si une date est déjà sélectionnée, réinitialiser l'heure
                     if (selectedDate) {
-                      const slots = generateTimeSlots(
-                        selectedDate,
-                        type.value === "phone"
-                          ? 15
-                          : type.value === "consultation"
-                          ? 60
-                          : 30
-                      );
-                      if (slots.length === 0 && selectedTime) {
-                        setSelectedTime("");
-                      }
+                      setSelectedTime("");
+                      setStep(1); // Revenir aux créneaux
                     }
                   }}
                   className={cn(
@@ -470,9 +440,9 @@ const RendezVousPage = () => {
       {selectedMeetingType && (
         <section className="py-16 overflow-hidden">
           <div className="container mx-auto px-4">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-7xl mx-auto">
               <div className="grid lg:grid-cols-3 gap-8">
-                {/* Calendar & Opening Hours */}
+                {/* Calendar & Time Slots/Form */}
                 <div className="lg:col-span-2">
                   <div className="grid md:grid-cols-2 gap-8">
                     {/* Calendar */}
@@ -490,7 +460,7 @@ const RendezVousPage = () => {
                               mode="single"
                               selected={selectedDate}
                               onSelect={handleDateSelect}
-                              disabled={(date) => !isDateAvailable(date)}
+                              disabled={(date) => !isDateSelectable(date)}
                               locale={fr}
                               className="rounded-lg border"
                               fromDate={new Date()}
@@ -500,210 +470,217 @@ const RendezVousPage = () => {
                       </Card>
                     </AnimatedSection>
 
-                    {/* Time Slots */}
+                    {/* Time Slots OU Formulaire */}
                     <AnimatedSection delay={0.1}>
-                      {step === 1 && selectedDate && (
-                        <Card className="h-full">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <Clock className="h-5 w-5" />
-                              Créneaux disponibles
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                              {format(selectedDate, "EEEE d MMMM", {
-                                locale: fr,
-                              })}
-                              {isToday(selectedDate) && " (aujourd'hui)"}
-                            </p>
-                          </CardHeader>
-                          <CardContent>
-                            {availableTimeSlots.length > 0 ? (
-                              <>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                  {availableTimeSlots.map((time) => (
-                                    <Button
-                                      key={time}
-                                      variant={
-                                        selectedTime === time
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      onClick={() => handleTimeSelect(time)}
-                                      className="w-full"
-                                    >
-                                      {time}
-                                    </Button>
-                                  ))}
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-4 text-center">
-                                  {getMeetingDuration()} minutes par créneau
-                                </p>
-                              </>
+                      <Card className="h-full">
+                        <CardHeader>
+                          {step === 1 ? (
+                            <>
+                              <CardTitle className="flex items-center gap-2">
+                                <Clock className="h-5 w-5" />
+                                Créneaux disponibles
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                {selectedDate
+                                  ? format(selectedDate, "EEEE d MMMM", {
+                                      locale: fr,
+                                    }) +
+                                    (isToday(selectedDate)
+                                      ? " (aujourd'hui)"
+                                      : "")
+                                  : "Sélectionnez une date"}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <CardTitle>Vos informations</CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                {selectedDate &&
+                                  format(selectedDate, "EEEE d MMMM yyyy", {
+                                    locale: fr,
+                                  })}{" "}
+                                à {selectedTime} ({getMeetingDuration()} min)
+                              </p>
+                            </>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          {step === 1 ? (
+                            // AFFICHER LES CRÉNEAUX
+                            selectedDate ? (
+                              loadingSlots ? (
+                                <TimeSlotsSkeleton />
+                              ) : availableSlots.length > 0 ? (
+                                <>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {availableSlots.map((time) => (
+                                      <Button
+                                        key={time}
+                                        variant={
+                                          selectedTime === time
+                                            ? "default"
+                                            : "outline"
+                                        }
+                                        onClick={() => handleTimeSelect(time)}
+                                        className="w-full h-12 text-base"
+                                      >
+                                        {time}
+                                      </Button>
+                                    ))}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-4 text-center">
+                                    {getMeetingDuration()} minutes par créneau
+                                  </p>
+                                </>
+                              ) : (
+                                <EmptyTimeSlots
+                                  isToday={isToday(selectedDate)}
+                                />
+                              )
                             ) : (
                               <div className="text-center py-8">
                                 <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                                 <p className="text-muted-foreground">
-                                  {selectedDate.getDay() === 0
-                                    ? "Dimanche - Fermé"
-                                    : "Aucun créneau disponible pour cette date"}
+                                  Veuillez sélectionner une date pour voir les
+                                  créneaux disponibles.
                                 </p>
-                                {isToday(selectedDate) && (
-                                  <p className="text-sm text-muted-foreground mt-2">
-                                    Les créneaux pour aujourd'hui commencent
-                                    dans 30 minutes
-                                  </p>
-                                )}
                               </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      )}
-                    </AnimatedSection>
-                  </div>
+                            )
+                          ) : (
+                            // AFFICHER LE FORMULAIRE
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                              <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="name">Nom complet *</Label>
+                                  <Input
+                                    id="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={(e) =>
+                                      handleFormChange("name", e.target.value)
+                                    }
+                                    placeholder="Votre nom"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="email">Email *</Label>
+                                  <Input
+                                    id="email"
+                                    type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={(e) =>
+                                      handleFormChange("email", e.target.value)
+                                    }
+                                    placeholder="votre@email.com"
+                                  />
+                                </div>
+                              </div>
 
-                  {/* Form */}
-                  {step === 2 && (
-                    <AnimatedSection className="mt-8">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Vos informations</CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedDate &&
-                              format(selectedDate, "EEEE d MMMM yyyy", {
-                                locale: fr,
-                              })}{" "}
-                            à {selectedTime} ({getMeetingDuration()} min)
-                          </p>
-                        </CardHeader>
-                        <CardContent>
-                          <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid sm:grid-cols-2 gap-4">
+                              <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="phone">Téléphone</Label>
+                                  <Input
+                                    id="phone"
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) =>
+                                      handleFormChange("phone", e.target.value)
+                                    }
+                                    placeholder="+33 1 23 45 67 89"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="company">Entreprise</Label>
+                                  <Input
+                                    id="company"
+                                    value={formData.company}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        "company",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Nom de votre entreprise"
+                                  />
+                                </div>
+                              </div>
+
                               <div className="space-y-2">
-                                <Label htmlFor="name">Nom complet *</Label>
-                                <Input
-                                  id="name"
+                                <Label htmlFor="service">
+                                  Service concerné *
+                                </Label>
+                                <Select
+                                  value={formData.service}
+                                  onValueChange={(value) =>
+                                    handleFormChange("service", value)
+                                  }
                                   required
-                                  value={formData.name}
-                                  onChange={(e) =>
-                                    handleFormChange("name", e.target.value)
-                                  }
-                                  placeholder="Votre nom"
-                                />
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionnez un service" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {services.map((service) => (
+                                      <SelectItem key={service} value={service}>
+                                        {service}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
+
                               <div className="space-y-2">
-                                <Label htmlFor="email">Email *</Label>
-                                <Input
-                                  id="email"
-                                  type="email"
-                                  required
-                                  value={formData.email}
+                                <Label htmlFor="message">
+                                  Message (optionnel)
+                                </Label>
+                                <Textarea
+                                  id="message"
+                                  rows={3}
+                                  value={formData.message}
                                   onChange={(e) =>
-                                    handleFormChange("email", e.target.value)
+                                    handleFormChange("message", e.target.value)
                                   }
-                                  placeholder="votre@email.com"
+                                  placeholder="Décrivez brièvement votre projet..."
                                 />
                               </div>
-                            </div>
 
-                            <div className="grid sm:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="phone">Téléphone</Label>
-                                <Input
-                                  id="phone"
-                                  type="tel"
-                                  value={formData.phone}
-                                  onChange={(e) =>
-                                    handleFormChange("phone", e.target.value)
+                              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setStep(1)}
+                                  className="flex-1"
+                                >
+                                  <ArrowLeft className="mr-2 h-4 w-4" />
+                                  Retour aux créneaux
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  disabled={
+                                    isSubmitting ||
+                                    !formData.name ||
+                                    !formData.email ||
+                                    !formData.service
                                   }
-                                  placeholder="+33 1 23 45 67 89"
-                                />
+                                  className="flex-1"
+                                >
+                                  {isSubmitting ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Envoi en cours...
+                                    </>
+                                  ) : (
+                                    "Confirmer le rendez-vous"
+                                  )}
+                                </Button>
                               </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="company">Entreprise</Label>
-                                <Input
-                                  id="company"
-                                  value={formData.company}
-                                  onChange={(e) =>
-                                    handleFormChange("company", e.target.value)
-                                  }
-                                  placeholder="Nom de votre entreprise"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="service">
-                                Service concerné *
-                              </Label>
-                              <Select
-                                value={formData.service}
-                                onValueChange={(value) =>
-                                  handleFormChange("service", value)
-                                }
-                                required
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Sélectionnez un service" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {services.map((service) => (
-                                    <SelectItem key={service} value={service}>
-                                      {service}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="message">
-                                Message (optionnel)
-                              </Label>
-                              <Textarea
-                                id="message"
-                                rows={3}
-                                value={formData.message}
-                                onChange={(e) =>
-                                  handleFormChange("message", e.target.value)
-                                }
-                                placeholder="Décrivez brièvement votre projet..."
-                              />
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setStep(1)}
-                                className="flex-1"
-                              >
-                                Retour
-                              </Button>
-                              <Button
-                                type="submit"
-                                disabled={
-                                  isSubmitting ||
-                                  !formData.name ||
-                                  !formData.email ||
-                                  !formData.service
-                                }
-                                className="flex-1"
-                              >
-                                {isSubmitting ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Envoi en cours...
-                                  </>
-                                ) : (
-                                  "Confirmer le rendez-vous"
-                                )}
-                              </Button>
-                            </div>
-                          </form>
+                            </form>
+                          )}
                         </CardContent>
                       </Card>
                     </AnimatedSection>
-                  )}
+                  </div>
                 </div>
 
                 {/* Opening Hours & Info */}

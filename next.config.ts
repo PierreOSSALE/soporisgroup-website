@@ -16,27 +16,9 @@ const nextConfig = {
   // Indispensable pour éviter les erreurs de compilation avec Prisma en Server Components
   serverExternalPackages: ["@prisma/client"],
 
+  // Supprimez les rewrites de sous-domaines
   async rewrites() {
-    return [
-      // 1. ADMIN: admin.soporisgroup.com -> dossier /(admin)
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "admin.soporisgroup.com" }],
-        destination: "/admin/:path*",
-      },
-      // 2. ASSISTANT: assistance.soporisgroup.com -> dossier /(assistant)
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "assistance.soporisgroup.com" }],
-        destination: "/assistant/:path*",
-      },
-      // 3. MARKETING (Défaut): soporisgroup.com -> dossier /(marketing)
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "soporisgroup.com" }],
-        destination: "/marketing/:path*",
-      },
-    ];
+    return [];
   },
 };
 

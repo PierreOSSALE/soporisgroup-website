@@ -41,6 +41,7 @@ model User {
   role         UserRole @default(user)
   isActive     Boolean  @default(true) @map("is_active")
   supabaseId   String?  @unique @map("supabase_id")
+   emailVerified DateTime? @map("email_verified")
   lastLoginAt  DateTime? @map("last_login_at")
   joinedDate   DateTime @default(now()) @map("joined_date")
   createdAt    DateTime @default(now()) @map("created_at")

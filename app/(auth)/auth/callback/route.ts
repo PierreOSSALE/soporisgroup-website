@@ -1,94 +1,98 @@
-// app/(auth)/auth/callback/route.ts
+// app/auth/callback/route.ts
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin;
+  const origin = requestUrl.origin;
 
-  if (code) {
+  if (!code) {
+    console.error("[CALLBACK] ❌ Aucun code fourni");
+    return NextResponse.redirect(`${origin}/signin?error=no_code`);
+  }
+
+  try {
     const supabase = await createClient();
+
+    // Échange du code contre une session (PKCE)
     const { error: authError } = await supabase.auth.exchangeCodeForSession(
       code
     );
 
-    if (!authError) {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-
-      if (authUser?.email) {
-        try {
-          console.log(`[CALLBACK] 🔍 Sync DB pour: ${authUser.email}`);
-
-          // 1. Recherche ou Création Prisma
-          let dbUser = await prisma.user.findFirst({
-            where: {
-              OR: [{ supabaseId: authUser.id }, { email: authUser.email }],
-            },
-            select: { id: true, role: true },
-          });
-
-          if (!dbUser) {
-            console.log("[CALLBACK] 📝 Création nouvel utilisateur Prisma");
-            dbUser = await prisma.user.create({
-              data: {
-                id: crypto.randomUUID(),
-                email: authUser.email,
-                name:
-                  authUser.user_metadata?.name || authUser.email.split("@")[0],
-                role: "user",
-                supabaseId: authUser.id,
-                joinedDate: new Date(),
-              },
-              select: { id: true, role: true },
-            });
-          }
-
-          // 2. INJECTION DU RÔLE DANS LES METADATA (Pour le Proxy)
-          console.log(
-            `[CALLBACK] 🚀 Injection du rôle "${dbUser.role}" dans Supabase...`
-          );
-          await supabase.auth.updateUser({
-            data: { role: dbUser.role },
-          });
-
-          // 3. REDIRECTION HYBRIDE (PROD vs DEV)
-          const role = dbUser.role;
-          const isProd = process.env.NODE_ENV === "production";
-
-          console.log(
-            `[CALLBACK] 🎯 Redirection finale vers zone: ${role} (${
-              isProd ? "PROD" : "DEV"
-            })`
-          );
-
-          if (isProd) {
-            if (role === "admin")
-              return NextResponse.redirect(
-                `https://admin.soporisgroup.com/dashboard`
-              );
-            if (role === "assistant")
-              return NextResponse.redirect(
-                `https://assistance.soporisgroup.com/assistant-dashboard`
-              );
-            return NextResponse.redirect(`https://soporisgroup.com/`);
-          } else {
-            // Localhost : On utilise le path
-            if (role === "admin")
-              return NextResponse.redirect(`${origin}/dashboard`);
-            if (role === "assistant")
-              return NextResponse.redirect(`${origin}/assistant-dashboard`);
-            return NextResponse.redirect(`${origin}/`);
-          }
-        } catch (error) {
-          console.error("[CALLBACK] 💥 Erreur Sync:", error);
-          return NextResponse.redirect(`${origin}/signin?error=sync_failed`);
-        }
-      }
+    if (authError) {
+      console.error("[CALLBACK] ❌ Erreur échange session:", authError.message);
+      return NextResponse.redirect(`${origin}/signin?error=auth_failed`);
     }
+
+    // Récupération de l'utilisateur authentifié
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (!authUser?.email) {
+      return NextResponse.redirect(`${origin}/signin?error=no_user`);
+    }
+
+    // Création ou mise à jour dans Prisma
+    return await createUserInPrisma(authUser, supabase, origin);
+  } catch (error: any) {
+    console.error("[CALLBACK] 💥 Erreur fatale:", error);
+    return NextResponse.redirect(`${origin}/signin?error=server_error`);
   }
-  return NextResponse.redirect(`${origin}/signin?error=auth_failed`);
+}
+
+async function createUserInPrisma(
+  authUser: any,
+  supabase: any,
+  origin: string
+) {
+  try {
+    console.log(`[CREATE_USER] 🔍 Traitement pour: ${authUser.email}`);
+
+    let dbUser = await prisma.user.findUnique({
+      where: { email: authUser.email },
+    });
+
+    if (!dbUser) {
+      console.log(`[CREATE_USER] 📝 Nouvel utilisateur dans Prisma`);
+      dbUser = await prisma.user.create({
+        data: {
+          id: crypto.randomUUID(),
+          email: authUser.email,
+          name: authUser.user_metadata?.name || "Utilisateur",
+          role: "user", // Rôle par défaut en attendant l'admin
+          supabaseId: authUser.id,
+          isActive: true,
+          joinedDate: new Date(),
+          emailVerified: authUser.email_confirmed_at
+            ? new Date(authUser.email_confirmed_at)
+            : null,
+        },
+      });
+    } else if (!dbUser.supabaseId) {
+      dbUser = await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { supabaseId: authUser.id },
+      });
+      console.log(`[CREATE_USER] 🔄 SupabaseId lié à l'existant`);
+    }
+
+    // Sync du rôle dans les métadonnées Supabase pour le middleware
+    await supabase.auth.updateUser({
+      data: { role: dbUser.role, name: dbUser.name },
+    });
+
+    // Détermination de la destination
+    let redirectPath = "/signin"; // Par défaut vers signin (message d'attente)
+    if (dbUser.role === "admin") redirectPath = "/dashboard";
+    if (dbUser.role === "assistant") redirectPath = "/assistant-dashboard";
+
+    console.log(`[CREATE_USER] 🚀 Redirection finale: ${redirectPath}`);
+    return NextResponse.redirect(`${origin}${redirectPath}`);
+  } catch (error: any) {
+    console.error("[CREATE_USER] 💥 Erreur Prisma:", error);
+    return NextResponse.redirect(`${origin}/signin?error=database_error`);
+  }
 }

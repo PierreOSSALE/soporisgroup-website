@@ -1,4 +1,3 @@
-// app/auth/signin/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -16,9 +15,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, User } from "lucide-react";
+import { Loader2, Mail, Lock, User, Clock, LogOut } from "lucide-react";
 
-export default function SignInForm() {
+// Ajout de l'interface pour le user
+interface SignInFormProps {
+  user?: any;
+}
+
+export default function SignInForm({ user }: SignInFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -33,61 +37,29 @@ export default function SignInForm() {
   const { toast } = useToast();
   const supabase = createBrowserSupabaseClient();
 
+  // Fonction pour se déconnecter (si on est bloqué en mode 'user')
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
-
       if (error) throw error;
 
       toast({
         title: "Connexion réussie",
-        description: "Chargement de votre espace...",
+        description: "Vérification de vos accès...",
       });
-
-      // On utilise window.location pour forcer le Proxy à ré-évaluer le domaine
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-      if (authUser) {
-        try {
-          // Appeler une API pour synchroniser et obtenir le rôle
-          const response = await fetch("/api/auth/sync", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          });
-
-          if (response.ok) {
-            const { role } = await response.json();
-
-            // Rediriger selon le rôle
-            if (role === "admin") {
-              window.location.href = "/dashboard";
-            } else if (role === "assistant") {
-              window.location.href = "/assistant-dashboard";
-            } else {
-              window.location.href = "/";
-            }
-          } else {
-            window.location.href = "/";
-          }
-        } catch (error) {
-          console.error("Erreur lors de la redirection:", error);
-          window.location.href = "/";
-        }
-      }
+      window.location.reload(); // Recharger pour laisser le serveur gérer la redirection vers le bon dashboard
     } catch (error: any) {
       setErrors({ general: error.message });
-      toast({
-        title: "Erreur",
-        description: error.message,
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -100,25 +72,20 @@ export default function SignInForm() {
       return;
     }
     setIsLoading(true);
-
     try {
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: {
           data: { name: signupData.name },
-          // Indispensable pour que le lien dans l'email Resend fonctionne
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-
       if (error) throw error;
-
       toast({
         title: "Vérifiez vos emails",
-        description: "Un lien de confirmation vous a été envoyé via Resend.",
+        description: "Un lien de confirmation vous a été envoyé.",
       });
-
       setActiveTab("login");
     } catch (error: any) {
       setErrors({ general: error.message });
@@ -127,25 +94,69 @@ export default function SignInForm() {
     }
   };
 
+  // --- VUE : ATTENTE DE VALIDATION ---
+  if (user && user.role === "user") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-amber-200 bg-amber-50/30">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+              <Clock className="h-6 w-6 text-amber-600" />
+            </div>
+            <CardTitle className="text-xl">Accès en attente</CardTitle>
+            <CardDescription>
+              Bonjour <strong>{user.name}</strong>, votre compte a été créé avec
+              succès.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Un administrateur doit valider votre rôle (Admin ou Assistant)
+              avant que vous ne puissiez accéder aux tableaux de bord.
+            </p>
+            <div className="pt-4 border-t flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                Actualiser ma session
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // --- VUE : FORMULAIRE (LOGIN/SIGNUP) ---
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="font-display text-2xl">
-            Espace Administration
-          </CardTitle>
+          <CardTitle className="font-display text-2xl">Soporis Group</CardTitle>
           <CardDescription>
-            Connectez-vous pour accéder au panneau d'administration
+            Connectez-vous pour accéder à votre espace
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
 
-            {/* Message d'erreur général */}
             {errors.general && (
               <div className="mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded">
                 {errors.general}
@@ -171,7 +182,6 @@ export default function SignInForm() {
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Mot de passe</Label>
                   <div className="relative">
@@ -179,7 +189,6 @@ export default function SignInForm() {
                     <Input
                       id="login-password"
                       type="password"
-                      placeholder="••••••••"
                       className="pl-10"
                       value={loginData.password}
                       onChange={(e) =>
@@ -189,13 +198,9 @@ export default function SignInForm() {
                     />
                   </div>
                 </div>
-
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connexion...
-                    </>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     "Se connecter"
                   )}
@@ -212,7 +217,6 @@ export default function SignInForm() {
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="Votre nom"
                       className="pl-10"
                       value={signupData.name}
                       onChange={(e) =>
@@ -222,7 +226,6 @@ export default function SignInForm() {
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <div className="relative">
@@ -230,7 +233,6 @@ export default function SignInForm() {
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="votre@email.com"
                       className="pl-10"
                       value={signupData.email}
                       onChange={(e) =>
@@ -240,7 +242,6 @@ export default function SignInForm() {
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Mot de passe</Label>
                   <div className="relative">
@@ -248,7 +249,6 @@ export default function SignInForm() {
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="••••••••"
                       className="pl-10"
                       value={signupData.password}
                       onChange={(e) =>
@@ -260,23 +260,14 @@ export default function SignInForm() {
                       required
                     />
                   </div>
-                  {errors.password && (
-                    <p className="text-sm text-destructive">
-                      {errors.password}
-                    </p>
-                  )}
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">
-                    Confirmer le mot de passe
-                  </Label>
+                  <Label htmlFor="signup-confirm">Confirmer</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-confirm"
                       type="password"
-                      placeholder="••••••••"
                       className="pl-10"
                       value={signupData.confirmPassword}
                       onChange={(e) =>
@@ -288,19 +279,10 @@ export default function SignInForm() {
                       required
                     />
                   </div>
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">
-                      {errors.confirmPassword}
-                    </p>
-                  )}
                 </div>
-
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Inscription...
-                    </>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     "S'inscrire"
                   )}

@@ -1,4 +1,4 @@
-// scripts/sync-existing-users.ts
+// scripts/final-sync-users.ts
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
 
@@ -8,31 +8,25 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function syncExistingUsers() {
-  try {
-    console.log("🔄 Synchronisation des utilisateurs existants...");
+async function finalSyncUsers() {
+  console.log("🔄 Synchronisation finale des utilisateurs...");
 
-    // Récupérer tous les utilisateurs Supabase Auth
+  try {
+    // Récupérer tous les utilisateurs Supabase
     const {
-      data: { users },
+      data: { users: authUsers },
       error,
     } = await supabase.auth.admin.listUsers();
 
     if (error) throw error;
 
-    console.log(`📊 ${users.length} utilisateurs trouvés dans Supabase Auth`);
+    console.log(`📊 ${authUsers.length} utilisateurs dans Supabase Auth`);
 
-    for (const authUser of users) {
+    for (const authUser of authUsers) {
       try {
-        // Vérifier que l'email est défini
-        if (!authUser.email) {
-          console.log(`⚠️ Utilisateur sans email, ID: ${authUser.id}`);
-          continue;
-        }
+        if (!authUser.email) continue;
 
-        console.log(`\n🔍 Traitement de: ${authUser.email}`);
-
-        // Vérifier si l'utilisateur existe déjà dans Prisma
+        // Vérifier si l'utilisateur existe déjà
         const existingUser = await prisma.user.findFirst({
           where: {
             OR: [{ supabaseId: authUser.id }, { email: authUser.email }],
@@ -40,36 +34,37 @@ async function syncExistingUsers() {
         });
 
         if (!existingUser) {
-          console.log(`📝 Création dans Prisma...`);
-
-          // Générer un UUID avec crypto natif
-          const uuid = crypto.randomUUID
-            ? crypto.randomUUID()
-            : `user-${Date.now()}-${Math.random().toString(36).substring(2)}`;
-
+          // Créer l'utilisateur
           const newUser = await prisma.user.create({
             data: {
-              id: uuid,
+              id: crypto.randomUUID(),
               email: authUser.email,
               name:
                 authUser.user_metadata?.name || authUser.email.split("@")[0],
-              image:
-                authUser.user_metadata?.avatar_url ||
-                authUser.user_metadata?.picture,
-              role: "user", // Rôle par défaut
-              isActive: true,
+              role: "user",
               supabaseId: authUser.id,
-              lastLoginAt: new Date(),
+              isActive: true,
               joinedDate: new Date(authUser.created_at),
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              emailVerified: authUser.email_confirmed_at
+                ? new Date(authUser.email_confirmed_at)
+                : null,
             },
           });
-          console.log(`✅ ${authUser.email} créé avec ID: ${newUser.id}`);
+
+          console.log(`✅ ${authUser.email} créé (ID: ${newUser.id})`);
         } else {
-          console.log(
-            `⚠️ ${authUser.email} existe déjà (ID: ${existingUser.id})`
-          );
+          // Mettre à jour les infos si nécessaire
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              supabaseId: authUser.id,
+              emailVerified: authUser.email_confirmed_at
+                ? new Date(authUser.email_confirmed_at)
+                : existingUser.emailVerified,
+            },
+          });
+
+          console.log(`🔁 ${authUser.email} mis à jour`);
         }
       } catch (userError) {
         console.error(`❌ Erreur pour ${authUser.email}:`, userError);
@@ -84,5 +79,4 @@ async function syncExistingUsers() {
   }
 }
 
-// Exécuter
-syncExistingUsers();
+finalSyncUsers();

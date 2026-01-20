@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   X,
+  Clock,
 } from "lucide-react";
 import { Route } from "next";
 import { useAuth } from "@/lib/auth/provider";
@@ -29,6 +30,7 @@ export interface AssistantSidebarProps {
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/assistant-dashboard" },
+  { icon: Clock, label: "Créneaux horaires", href: "/assistant-time-slots" },
   { icon: Calendar, label: "Rendez-vous", href: "/assistant-appointments" },
   { icon: HelpCircle, label: "FAQ", href: "/assistant-faq" },
   { icon: MessageSquare, label: "Messages", href: "/assistant-messages" },

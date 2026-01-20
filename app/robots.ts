@@ -9,13 +9,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: [
-        "/admin", // Bloque l'accès au dossier admin
-        "/admin/",
-        "/assistant", // Bloque l'accès au dossier assistant
-        "/assistant/",
-        "/api/", // Sécurité supplémentaire pour tes routes API
-      ],
+      disallow: ["/admin/", "/assistant/", "/api/"],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };
