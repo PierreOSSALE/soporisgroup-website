@@ -1,3 +1,4 @@
+// hooks/useTimeSlots.ts
 "use client";
 
 import { useState, useEffect } from "react";
@@ -122,64 +123,132 @@ export function useTimeSlots() {
 
   const getDayName = (dayOfWeek: number) => DAY_NAMES[dayOfWeek];
 
-  const getAvailableSlotsForDate = (date: Date): string[] => {
+  // Nouvelle fonction pour générer les créneaux selon la durée du rendez-vous
+  const getAvailableSlotsForDateWithDuration = (
+    date: Date,
+    meetingDuration: number = 30,
+    bookedSlots: string[] = []
+  ): string[] => {
     const dayOfWeek = date.getDay();
     const dateStr = date.toISOString().split("T")[0];
 
-    // Check if date is blocked
+    // Vérifier si la date est bloquée
     if (blockedDates.some((bd) => bd.date === dateStr)) {
       return [];
     }
 
-    // Get slots for this day of week
+    // Obtenir les créneaux pour ce jour de la semaine
     const daySlots = timeSlots.filter(
       (slot) => slot.day_of_week === dayOfWeek && slot.is_active
     );
 
-    // Generate time slots
+    // Générer les créneaux disponibles
     const availableSlots: string[] = [];
+
     daySlots.forEach((slot) => {
       const [startHour, startMin] = slot.start_time.split(":").map(Number);
       const [endHour, endMin] = slot.end_time.split(":").map(Number);
+
       const startMinutes = startHour * 60 + startMin;
       const endMinutes = endHour * 60 + endMin;
 
+      // Générer des créneaux selon la durée du rendez-vous
       for (
-        let m = startMinutes;
-        m + slot.duration_minutes <= endMinutes;
-        m += slot.duration_minutes
+        let current = startMinutes;
+        current + meetingDuration <= endMinutes;
+        current += slot.duration_minutes // Incrément par la durée de base du créneau
       ) {
-        const hour = Math.floor(m / 60);
-        const min = m % 60;
-        availableSlots.push(
-          `${hour.toString().padStart(2, "0")}:${min
+        // Vérifier si nous pouvons allouer la durée complète du rendez-vous
+        if (current + meetingDuration <= endMinutes) {
+          const hour = Math.floor(current / 60);
+          const min = current % 60;
+          const timeString = `${hour.toString().padStart(2, "0")}:${min
             .toString()
-            .padStart(2, "0")}`
-        );
+            .padStart(2, "0")}`;
+
+          // Vérifier si le créneau n'est pas déjà réservé
+          if (!bookedSlots.includes(timeString)) {
+            // Vérifier si c'est aujourd'hui et si le créneau est dans le futur
+            const isToday = date.toDateString() === new Date().toDateString();
+            if (isToday) {
+              const now = new Date();
+              const currentTimeInMinutes =
+                now.getHours() * 60 + now.getMinutes();
+              if (current > currentTimeInMinutes + 30) {
+                // Buffer de 30 minutes
+                availableSlots.push(timeString);
+              }
+            } else {
+              availableSlots.push(timeString);
+            }
+          }
+        }
       }
     });
 
     return availableSlots.sort();
   };
 
+  // Fonction pour vérifier si une date est disponible
   const isDateAvailable = (date: Date): boolean => {
-    const dateStr = date.toISOString().split("T")[0];
-
-    // Check if in the past
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (date < today) return false;
+    const selectedDay = new Date(date);
+    selectedDay.setHours(0, 0, 0, 0);
 
-    // Check if blocked
+    // Ne pas permettre les dates passées
+    if (selectedDay < today) return false;
+
+    // Vérifier si la date est bloquée
+    const dateStr = date.toISOString().split("T")[0];
     if (blockedDates.some((bd) => bd.date === dateStr)) {
       return false;
     }
 
-    // Check if there are slots for this day
+    // Vérifier s'il y a des créneaux pour ce jour
     const dayOfWeek = date.getDay();
     return timeSlots.some(
       (slot) => slot.day_of_week === dayOfWeek && slot.is_active
     );
+  };
+
+  // Fonction pour générer les horaires d'ouverture à afficher
+  const getOpeningHours = () => {
+    const hoursByDay: Record<number, { open: string; close: string }[]> = {};
+
+    timeSlots
+      .filter((slot) => slot.is_active)
+      .forEach((slot) => {
+        if (!hoursByDay[slot.day_of_week]) {
+          hoursByDay[slot.day_of_week] = [];
+        }
+        hoursByDay[slot.day_of_week].push({
+          open: slot.start_time,
+          close: slot.end_time,
+        });
+      });
+
+    return hoursByDay;
+  };
+
+  // Fonction pour formater les horaires d'ouverture en texte lisible
+  const getFormattedOpeningHours = () => {
+    const hoursByDay = getOpeningHours();
+    const formatted: { day: string; hours: string }[] = [];
+
+    DAY_NAMES.forEach((dayName, index) => {
+      if (hoursByDay[index]) {
+        const hours = hoursByDay[index]
+          .map((h) => `${h.open} - ${h.close}`)
+          .join(" et ");
+        formatted.push({ day: dayName, hours });
+      } else if (index !== 0) {
+        // Dimanche
+        formatted.push({ day: dayName, hours: "Fermé" });
+      }
+    });
+
+    return formatted;
   };
 
   return {
@@ -195,7 +264,9 @@ export function useTimeSlots() {
     addBlockedDate,
     deleteBlockedDate,
     getDayName,
-    getAvailableSlotsForDate,
+    getAvailableSlotsForDate: getAvailableSlotsForDateWithDuration,
     isDateAvailable,
+    getOpeningHours,
+    getFormattedOpeningHours,
   };
 }

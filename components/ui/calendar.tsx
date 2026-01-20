@@ -19,6 +19,7 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  disabled,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
@@ -53,12 +54,12 @@ function Calendar({
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
+          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none hover:bg-accent/50",
           defaultClassNames.button_previous
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
+          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none hover:bg-accent/50",
           defaultClassNames.button_next
         ),
         month_caption: cn(
@@ -78,7 +79,7 @@ function Calendar({
           defaultClassNames.dropdown
         ),
         caption_label: cn(
-          "select-none font-medium",
+          "select-none font-medium text-foreground",
           captionLayout === "label"
             ? "text-sm"
             : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
@@ -87,10 +88,10 @@ function Calendar({
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
+          "text-muted-foreground font-medium text-xs select-none py-2",
           defaultClassNames.weekday
         ),
-        week: cn("flex w-full mt-2", defaultClassNames.week),
+        week: cn("flex w-full mt-1", defaultClassNames.week),
         week_number_header: cn(
           "select-none w-(--cell-size)",
           defaultClassNames.week_number_header
@@ -100,25 +101,22 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
+          "relative w-full h-full p-0 text-center group/day aspect-square select-none",
           defaultClassNames.day
         ),
-        range_start: cn(
-          "rounded-l-md bg-accent",
-          defaultClassNames.range_start
-        ),
+        range_start: cn("rounded-l-md", defaultClassNames.range_start),
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
-        range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
+        range_end: cn("rounded-r-md", defaultClassNames.range_end),
         today: cn(
-          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+          "text-primary font-semibold relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary",
           defaultClassNames.today
         ),
         outside: cn(
-          "text-muted-foreground aria-selected:text-muted-foreground",
+          "text-muted-foreground/40 aria-selected:text-muted-foreground/40",
           defaultClassNames.outside
         ),
         disabled: cn(
-          "text-muted-foreground opacity-50",
+          "text-muted-foreground/30 cursor-not-allowed",
           defaultClassNames.disabled
         ),
         hidden: cn("invisible", defaultClassNames.hidden),
@@ -167,6 +165,7 @@ function Calendar({
         },
         ...components,
       }}
+      disabled={disabled}
       {...props}
     />
   );
@@ -185,6 +184,11 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
+  const isToday = modifiers.today;
+  const isSelected = modifiers.selected;
+  const isDisabled = modifiers.disabled;
+  const isOutside = modifiers.outside;
+
   return (
     <Button
       ref={ref}
@@ -201,12 +205,52 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+        "flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal",
+        "group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50",
+        "dark:hover:text-accent-foreground group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]",
+        "[&>span]:text-xs [&>span]:opacity-70",
+
+        // Styles de base
+        "hover:bg-accent/50 hover:text-accent-foreground",
+
+        // Aujourd'hui
+        isToday && !isSelected && "text-primary font-semibold",
+
+        // Jour sélectionné
+        isSelected &&
+          "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+
+        // Plage de sélection
+        modifiers.range_start && "rounded-l-md",
+        modifiers.range_end && "rounded-r-md",
+        modifiers.range_middle && "bg-accent/50 text-accent-foreground",
+
+        // Jour désactivé
+        isDisabled &&
+          "text-muted-foreground/30 cursor-not-allowed hover:bg-transparent hover:text-muted-foreground/30",
+
+        // Jour hors du mois
+        isOutside &&
+          !isSelected &&
+          "text-muted-foreground/40 hover:text-muted-foreground/40",
+
+        // Focus
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+
         defaultClassNames.day,
         className
       )}
+      disabled={isDisabled}
       {...props}
-    />
+    >
+      {/* Affichage du jour */}
+      <span>{day.date.getDate()}</span>
+
+      {/* Indicateur pour aujourd'hui (un petit point en bas) */}
+      {isToday && !isSelected && (
+        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+      )}
+    </Button>
   );
 }
 
