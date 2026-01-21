@@ -89,6 +89,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "",
+    yandex: "",
+    yahoo: "",
+  },
 };
 
 // Schema.org JSON-LD pour SEO local et business
@@ -201,7 +206,7 @@ export default function MarketingLayout({
         {/* SUPPRIMER le div flex-col parent */}
         <div>
           <Header />
-          <main className="">{children}</main>
+          <main>{children}</main>
           {/* <WhatsAppButton /> */}
           <Chatbot />
           <Footer />

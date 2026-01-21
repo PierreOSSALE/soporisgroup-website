@@ -66,12 +66,12 @@ const organizationSchema = {
 
 export default function Home() {
   return (
-    <>
+    <div className="overflow-x-hidden md:overflow-x-auto">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
       <HomeClient />
-    </>
+    </div>
   );
 }
