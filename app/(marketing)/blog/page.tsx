@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "Soporis Group",
     images: [
       {
-        url: "/images/blog-og-cover.jpg", // Crée une image générique pour ton blog
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768482768/soporis_blog_ncvqcp.png", // Crée une image générique pour ton blog
         width: 1200,
         height: 630,
         alt: "Soporis Group Blog - Expertise Web & Design",
