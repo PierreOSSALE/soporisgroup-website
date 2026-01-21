@@ -89,11 +89,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "",
-    yandex: "",
-    yahoo: "",
-  },
 };
 
 // Schema.org JSON-LD pour SEO local et business
