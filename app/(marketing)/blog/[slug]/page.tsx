@@ -1,5 +1,6 @@
 // app/(marketing)/blog/[slug]/page.tsx
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ChevronLeft, Eye, Clock } from "lucide-react";
 import Link from "next/link";
 import BlogBadge from "@/components/features/blog/BlogBadge";
@@ -14,7 +15,8 @@ import {
   incrementBlogPostViews,
 } from "@/lib/actions/blog.actions";
 import { getCommentsByPostId } from "@/lib/actions/comment.actions";
-import Image from "next/image";
+import BlogDetailSkeleton from "@/components/skeletons/BlogDetailSkeleton";
+import { Metadata } from "next";
 
 interface BlogDetailPageProps {
   params: Promise<{
@@ -22,24 +24,115 @@ interface BlogDetailPageProps {
   }>;
 }
 
-const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
-  // Déballer la promesse params
+export async function generateMetadata({
+  params,
+}: BlogDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-
   const post = await getBlogPostBySlug(slug);
 
   if (!post) {
-    notFound();
+    return {
+      title: "Article non trouvé | Soporis Group",
+    };
   }
 
-  await incrementBlogPostViews(post.id);
-  const recommendedPosts = await getRecommendedPosts(slug);
+  return {
+    title: `${post.title} | Blog Soporis Group`,
+    description: post.excerpt || `Lisez notre article sur ${post.title}`,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: `https://soporisgroup.com/blog/${slug}`,
+      type: "article",
+      publishedTime: post.publishedAt?.toISOString(),
+      authors: ["Soporis Group"],
+      images: [
+        {
+          url: post.image,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: [post.image],
+    },
+  };
+}
 
-  // Récupérer les commentaires approuvés
-  const comments = await getCommentsByPostId(post.id);
+async function BlogDetailContent({ slug }: { slug: string }) {
+  const post = await getBlogPostBySlug(slug);
 
+  if (!post) notFound();
+
+  // On lance le reste en parallèle une fois qu'on a le post
+  const [recommendedPosts, comments] = await Promise.all([
+    getRecommendedPosts(slug),
+    getCommentsByPostId(post.id),
+  ]);
+
+  if (!post) notFound();
+
+  // Convertir publishedAt en Date si nécessaire
+  const publishedAt = post.publishedAt
+    ? post.publishedAt instanceof Date
+      ? post.publishedAt
+      : new Date(post.publishedAt)
+    : null;
+
+  // Incrémenter les vues en arrière-plan
+  incrementBlogPostViews(post.id).catch(console.error);
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    image: post.image,
+    datePublished: post.publishedAt?.toISOString(),
+    author: { "@type": "Organization", name: "Soporis Group" },
+    description: post.excerpt,
+  };
+
+  // 2. Schéma Breadcrumb (Fil d'Ariane)
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Accueil",
+        item: "https://soporisgroup.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: "https://soporisgroup.com/blog",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.title,
+        item: `https://soporisgroup.com/blog/${slug}`,
+      },
+    ],
+  };
   return (
-    <div className="min-h-screen bg-background pt-34">
+    <>
+      {/* Insertion des scripts JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Back Button */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <Link
@@ -58,14 +151,18 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
           {post.title}
         </h1>
         <div className="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground">
-          <span>
-            {post.publishedAt?.toLocaleDateString("fr-FR", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </span>
-          <span>•</span>
+          {publishedAt && (
+            <>
+              <span>
+                {publishedAt.toLocaleDateString("fr-FR", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+              <span>•</span>
+            </>
+          )}
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             {post.readTime} min de lecture
@@ -80,17 +177,17 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
 
       {/* Hero Image */}
       <div className="max-w-5xl mx-auto px-4 mb-12">
-        <Image
+        <img
           src={post.image}
           alt={post.title}
           className="w-full aspect-2/1 object-cover rounded-2xl"
+          loading="lazy"
         />
       </div>
 
-      {/* Content Layout - EXACTEMENT comme React version */}
+      {/* Content Layout */}
       <div className="max-w-6xl mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Sidebar */}
           <aside className="lg:col-span-3 order-2 lg:order-1">
             <div className="sticky top-38 space-y-8">
               <TableOfContents
@@ -104,11 +201,8 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
             </div>
           </aside>
 
-          {/* Article Content */}
           <article className="lg:col-span-9 order-1 lg:order-2">
             <BlogContent content={post.content} />
-
-            {/* Comments Section */}
             <CommentSection postId={post.id} initialComments={comments} />
           </article>
         </div>
@@ -125,6 +219,18 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
           ))}
         </div>
       </section>
+    </>
+  );
+}
+
+const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
+  const { slug } = await params;
+
+  return (
+    <div className="min-h-screen bg-background pt-34">
+      <Suspense fallback={<BlogDetailSkeleton />}>
+        <BlogDetailContent slug={slug} />
+      </Suspense>
     </div>
   );
 };

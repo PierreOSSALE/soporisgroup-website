@@ -57,7 +57,7 @@ const ShareButtons = ({
     const subject = title;
     const body = `${excerpt}\n\n${currentUrl}`;
     const url = `mailto:?subject=${encodeURIComponent(
-      subject
+      subject,
     )}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
   };
@@ -65,14 +65,14 @@ const ShareButtons = ({
   const shareOnTwitter = () => {
     const text = `${title} ${currentUrl}`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      text
+      text,
     )}`;
     window.open(url, "_blank");
   };
 
   const shareOnLinkedIn = () => {
     const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-      currentUrl
+      currentUrl,
     )}`;
     window.open(url, "_blank");
   };
@@ -90,7 +90,7 @@ const ShareButtons = ({
         <Button
           variant="default"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 cursor-pointer"
           onClick={shareOnWhatsApp}
           title="Partager sur WhatsApp"
         >
@@ -100,7 +100,7 @@ const ShareButtons = ({
         <Button
           variant="default"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 cursor-pointer"
           onClick={shareByEmail}
           title="Partager par email"
         >
@@ -110,7 +110,7 @@ const ShareButtons = ({
         <Button
           variant="default"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 cursor-pointer"
           onClick={shareOnTwitter}
           title="Partager sur Twitter"
         >
@@ -122,7 +122,7 @@ const ShareButtons = ({
         <Button
           variant="default"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 cursor-pointer"
           onClick={shareOnLinkedIn}
           title="Partager sur LinkedIn"
         >
@@ -134,7 +134,7 @@ const ShareButtons = ({
         <Button
           variant="default"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 cursor-pointer"
           onClick={handleCopyLink}
           title="Copier le lien"
         >

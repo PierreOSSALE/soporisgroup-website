@@ -41,7 +41,7 @@ const organizationSchema = {
   description:
     "Agence web spécialisée en développement sur mesure et UI/UX design à Paris.",
   url: "https://soporisgroup.com",
-  logo: "https://soporisgroup.com/logo.png",
+  logo: "https://res.cloudinary.com/db8hwgart/image/upload/v1768963578/favicon_i6bx5v.png",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Paris",

@@ -9,9 +9,9 @@ import Link from "next/link";
 import { Route } from "next";
 
 const stats = [
-  { icon: Users, value: "50+", label: "Projets livrés" },
+  { icon: Users, value: "100+", label: "Projets livrés" },
   { icon: Target, value: "100%", label: "Satisfaction client" },
-  { icon: Award, value: "3+", label: "Années d'expérience" },
+  { icon: Award, value: "5+", label: "Années d'expérience" },
   { icon: Zap, value: "24h", label: "Temps de réponse" },
 ];
 

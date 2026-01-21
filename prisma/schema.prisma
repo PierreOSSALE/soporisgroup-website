@@ -86,7 +86,7 @@ model BlogPost {
   readTime        Int      @default(5) @map("read_time")
   views           Int      @default(0)
   published       Boolean  @default(false)
-  publishedAt     DateTime @map("published_at")
+  publishedAt     DateTime? @map("published_at")
   comments Comment[]
 
   tableOfContents Json     @map("table_of_contents")

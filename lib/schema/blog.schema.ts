@@ -1,6 +1,12 @@
-//lib/schema/blog.schema.ts
 // lib/schema/blog.schema.ts
 import { z } from "zod";
+
+// Schéma pour un item de table des matières
+export const tableOfContentsItemSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  level: z.number().min(1).max(6).optional().default(2),
+});
 
 export const authorSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -35,13 +41,13 @@ export const blogPostSchema = z.object({
     .min(3, "Le slug doit contenir au moins 3 caractères")
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Le slug doit être en minuscules avec des tirets"
+      "Le slug doit être en minuscules avec des tirets",
     ),
   excerpt: z.string().min(10, "L'extrait doit contenir au moins 10 caractères"),
   content: z
     .string()
     .min(50, "Le contenu doit contenir au moins 50 caractères"),
-  image: z.string().url("URL d'image invalide").optional().or(z.literal("")),
+  image: z.string().url("URL d'image invalide"),
   category: z.string().min(2, "La catégorie est requise"),
   readTime: z
     .number()
@@ -49,22 +55,54 @@ export const blogPostSchema = z.object({
   views: z.number().default(0).optional(),
   published: z.boolean().default(false),
   publishedAt: z.date().nullable().optional(),
-  authorId: z.string().min(1, "L'auteur est requis"),
-  authorInput: authorCreateSchema.optional(), // Nouveau champ pour l'auteur
-  tableOfContents: z.array(z.string()).default([]),
+  authorId: z.string().optional(),
+  authorInput: authorCreateSchema.optional(),
+  // Table des matières est maintenant optionnelle et sera générée automatiquement
+  tableOfContents: z.array(tableOfContentsItemSchema).optional().default([]),
 });
 
-// Pour la création, on ne met pas publishedAt (il sera défini automatiquement)
+// Schéma pour créer un article (sans publishedAt et views)
 export const blogPostCreateSchema = blogPostSchema.omit({
   views: true,
   publishedAt: true,
 });
 
-// Pour la mise à jour, publishedAt est nullable
-export const blogPostUpdateSchema = blogPostSchema.partial().extend({
-  publishedAt: z.date().nullable().optional(),
+// Schéma pour mettre à jour un article (tous les champs optionnels)
+export const blogPostUpdateSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Le titre doit contenir au moins 3 caractères")
+    .optional(),
+  slug: z
+    .string()
+    .min(3, "Le slug doit contenir au moins 3 caractères")
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Le slug doit être en minuscules avec des tirets",
+    )
+    .optional(),
+  excerpt: z
+    .string()
+    .min(10, "L'extrait doit contenir au moins 10 caractères")
+    .optional(),
+  content: z
+    .string()
+    .min(50, "Le contenu doit contenir au moins 50 caractères")
+    .optional(),
+  image: z.string().url("URL d'image invalide").optional(),
+  category: z.string().min(2, "La catégorie est requise").optional(),
+  readTime: z
+    .number()
+    .min(1, "Le temps de lecture doit être d'au moins 1 minute")
+    .optional(),
+  published: z.boolean().optional(),
+  authorId: z.string().optional(),
+  authorInput: authorCreateSchema.optional(),
+  // La table des matières est optionnelle et sera générée automatiquement
+  tableOfContents: z.array(tableOfContentsItemSchema).optional(),
 });
 
+export type TableOfContentsItem = z.infer<typeof tableOfContentsItemSchema>;
 export type AuthorInput = z.infer<typeof authorSchema>;
 export type AuthorCreateInput = z.infer<typeof authorCreateSchema>;
 export type CommentInput = z.infer<typeof commentSchema>;

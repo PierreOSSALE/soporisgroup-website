@@ -104,7 +104,7 @@ const AuthorSelector = ({
         avatar:
           newAuthor.avatar ||
           `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            newAuthor.name
+            newAuthor.name,
           )}&background=3b82f6&color=fff`,
         bio: newAuthor.bio || undefined,
       });
@@ -125,14 +125,12 @@ const AuthorSelector = ({
   const generateAvatarUrl = () => {
     if (!newAuthor.name.trim()) return "";
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      newAuthor.name
+      newAuthor.name,
     )}&background=3b82f6&color=fff&size=256`;
   };
 
   return (
     <div className={`space-y-3 ${className}`} ref={containerRef}>
-      <Label htmlFor="author-search">Auteur *</Label>
-
       {!newAuthorMode ? (
         <div className="relative">
           <div className="flex gap-2">
