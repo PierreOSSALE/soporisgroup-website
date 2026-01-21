@@ -109,7 +109,7 @@ const RendezVousPage = () => {
   // Obtenir la durée de la réunion selon le type sélectionné
   const getMeetingDuration = () => {
     const meetingType = meetingTypes.find(
-      (t) => t.value === selectedMeetingType
+      (t) => t.value === selectedMeetingType,
     );
     return meetingType?.durationMinutes || 30;
   };
@@ -124,7 +124,7 @@ const RendezVousPage = () => {
         try {
           const slots = await getAvailableSlotsForDate(
             debouncedDate,
-            getMeetingDuration()
+            getMeetingDuration(),
           );
           if (isMounted) {
             setAvailableSlots(slots);
@@ -165,7 +165,7 @@ const RendezVousPage = () => {
       // Vérifier si la date est disponible via le hook
       return isDateAvailable(date);
     },
-    [isDateAvailable]
+    [isDateAvailable],
   );
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -220,7 +220,7 @@ const RendezVousPage = () => {
         description: `Votre demande pour le ${format(
           selectedDate,
           "EEEE d MMMM yyyy",
-          { locale: fr }
+          { locale: fr },
         )} à ${selectedTime} a été reçue.`,
       });
     } catch (error: any) {
@@ -300,7 +300,7 @@ const RendezVousPage = () => {
 
   // Calculer le type de rendez-vous actuel
   const currentMeetingType = meetingTypes.find(
-    (t) => t.value === selectedMeetingType
+    (t) => t.value === selectedMeetingType,
   );
 
   if (isConfirmed) {
@@ -399,7 +399,7 @@ const RendezVousPage = () => {
                     "bg-card rounded-2xl p-8 border transition-all duration-300 text-center cursor-pointer group h-full",
                     selectedMeetingType === type.value
                       ? "border-primary shadow-card ring-2 ring-primary/20"
-                      : "border-border hover:shadow-card"
+                      : "border-border hover:shadow-card",
                   )}
                 >
                   <div
@@ -407,7 +407,7 @@ const RendezVousPage = () => {
                       "w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6 transition-colors",
                       selectedMeetingType === type.value
                         ? "bg-primary text-primary-foreground"
-                        : "bg-primary/10 group-hover:bg-primary/20"
+                        : "bg-primary/10 group-hover:bg-primary/20",
                     )}
                   >
                     <type.icon
@@ -415,7 +415,7 @@ const RendezVousPage = () => {
                         "h-8 w-8",
                         selectedMeetingType === type.value
                           ? "text-white"
-                          : "text-primary"
+                          : "text-primary",
                       )}
                     />
                   </div>
@@ -598,7 +598,7 @@ const RendezVousPage = () => {
                                     onChange={(e) =>
                                       handleFormChange(
                                         "company",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="Nom de votre entreprise"
@@ -653,7 +653,7 @@ const RendezVousPage = () => {
                                   className="flex-1"
                                 >
                                   <ArrowLeft className="mr-2 h-4 w-4" />
-                                  Retour aux créneaux
+                                  Retour
                                 </Button>
                                 <Button
                                   type="submit"
