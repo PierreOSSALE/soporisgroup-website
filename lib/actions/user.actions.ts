@@ -41,26 +41,51 @@ export async function signUp(data: SignupInput) {
 // NOTE: On ne crée pas l'utilisateur manuellement ici pour l'auth.
 // On utilise cette fonction uniquement pour l'administration.
 export async function updateUser(id: string, data: any) {
-  const validated = editUserSchema.safeParse(data);
-  if (!validated.success) {
-    throw new Error(validated.error.issues[0].message);
-  }
-
   try {
+    // Préparer les données avec des valeurs par défaut pour les champs optionnels
+    const preparedData = {
+      ...data,
+      id, // S'assurer que l'ID est inclus
+      phone: data.phone || null,
+      image: data.image || null,
+    };
+
+    const validated = editUserSchema.safeParse(preparedData);
+    if (!validated.success) {
+      console.error("Erreur de validation:", validated.error.issues);
+      throw new Error(validated.error.issues[0].message);
+    }
+
+    // Préparer les données pour Prisma (exclure l'ID)
+    const { id: _, ...updateData } = validated.data;
+
     const user = await prisma.user.update({
       where: { id },
       data: {
-        name: validated.data.name,
-        email: validated.data.email,
-        role: validated.data.role,
-        isActive: validated.data.isActive,
-        image: validated.data.image,
+        name: updateData.name,
+        email: updateData.email,
+        role: updateData.role,
+        isActive: updateData.isActive,
+        image: updateData.image,
       },
     });
+
+    revalidatePath("/admin-users");
     revalidatePath("/admin/users");
     return user;
-  } catch (error) {
-    throw new Error("Erreur lors de la mise à jour");
+  } catch (error: any) {
+    console.error("Erreur détaillée updateUser:", error);
+
+    if (error.code === "P2002") {
+      throw new Error("Un utilisateur avec cet email existe déjà");
+    }
+    if (error.code === "P2025") {
+      throw new Error("Utilisateur non trouvé");
+    }
+
+    throw new Error(
+      error.message || "Erreur lors de la mise à jour de l'utilisateur",
+    );
   }
 }
 

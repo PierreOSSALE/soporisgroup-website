@@ -35,3 +35,45 @@ export type Testimonial = {
   author: string;
   role: string;
 };
+
+// Admin Project Form Data
+
+export type AdminProject = {
+  id: string;
+  title: string;
+  subtitle: string;
+  slug: string;
+  category: string;
+  client: string;
+  duration: string;
+  pack: string;
+  year: string;
+  status: "draft" | "published" | "archived";
+  imageUrl: string | null;
+  featured: boolean;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Type pour les données du formulaire
+export type ProjectFormData = {
+  title: string;
+  subtitle: string;
+  slug: string;
+  category: string;
+  client: string;
+  duration: string;
+  pack: string;
+  year: string;
+  status: "draft" | "published" | "archived";
+  featured: boolean;
+  imageUrl: string;
+  description: string;
+  technologies: string[];
+  challenges: string[];
+  solutions: string[];
+  results: string[];
+  screenshots: Screenshot[];
+  testimonial?: Testimonial;
+};

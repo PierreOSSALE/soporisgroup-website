@@ -59,58 +59,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-// Définir un type pour l'admin qui correspond aux données retournées par getProjects()
-type AdminProject = {
-  id: string;
-  title: string;
-  subtitle: string;
-  slug: string;
-  category: string;
-  client: string;
-  duration: string;
-  pack: string;
-  year: string;
-  status: "draft" | "published" | "archived";
-  imageUrl: string | null;
-  featured: boolean;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-// Types pour les champs JSON
-type Screenshot = {
-  url: string;
-  caption: string;
-};
-
-type Testimonial = {
-  quote: string;
-  author: string;
-  role: string;
-};
-
-// Type pour les données du formulaire
-type ProjectFormData = {
-  title: string;
-  subtitle: string;
-  slug: string;
-  category: string;
-  client: string;
-  duration: string;
-  pack: string;
-  year: string;
-  status: "draft" | "published" | "archived";
-  featured: boolean;
-  imageUrl: string;
-  description: string;
-  technologies: string[];
-  challenges: string[];
-  solutions: string[];
-  results: string[];
-  screenshots: Screenshot[];
-  testimonial?: Testimonial;
-};
+import {
+  AdminProject,
+  Screenshot,
+  Testimonial,
+  ProjectFormData,
+} from "@/types/project";
 
 // Fonction helper pour parser les champs JSON
 const parseJsonField = <T,>(field: any, defaultValue: T): T => {
@@ -132,7 +86,7 @@ export default function AdminProjects() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<AdminProject | null>(
-    null
+    null,
   );
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const { toast } = useToast();
@@ -198,7 +152,7 @@ export default function AdminProjects() {
     (project) =>
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.category.toLowerCase().includes(searchTerm.toLowerCase())
+      project.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleOpenDialog = async (projectId?: string) => {
@@ -227,7 +181,7 @@ export default function AdminProjects() {
             screenshots: parseJsonField<Screenshot[]>(project.screenshots, []),
             testimonial: parseJsonField<Testimonial | undefined>(
               project.testimonial,
-              undefined
+              undefined,
             ),
           });
         }
@@ -448,7 +402,7 @@ export default function AdminProjects() {
 
   const handleChangeStatus = async (
     id: string,
-    status: "draft" | "published" | "archived"
+    status: "draft" | "published" | "archived",
   ) => {
     try {
       await changeStatus(id, status);
@@ -671,7 +625,7 @@ export default function AdminProjects() {
                     <Select
                       value={formData.status}
                       onValueChange={(
-                        value: "draft" | "published" | "archived"
+                        value: "draft" | "published" | "archived",
                       ) => setFormData({ ...formData, status: value })}
                     >
                       <SelectTrigger>
@@ -1122,7 +1076,7 @@ export default function AdminProjects() {
                       <div className="flex items-center gap-2">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            project.status
+                            project.status,
                           )}`}
                         >
                           {getStatusLabel(project.status)}
@@ -1130,7 +1084,7 @@ export default function AdminProjects() {
                         <Select
                           value={project.status}
                           onValueChange={(
-                            value: "draft" | "published" | "archived"
+                            value: "draft" | "published" | "archived",
                           ) => handleChangeStatus(project.id, value)}
                         >
                           <SelectTrigger className="h-6 w-24">

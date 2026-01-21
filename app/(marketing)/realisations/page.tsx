@@ -1,5 +1,4 @@
 // app/(marketing)/realisations/page.tsx
-// app/(marketing)/realisations/page.tsx
 import { prisma } from "@/lib/prisma";
 import RealisationsClient from "./realisations-client";
 import { Metadata } from "next";
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nos Réalisations | Soporis Group",
     description: "Découvrez notre portfolio de projets digitaux.",
-    url: "https://votre-domaine.com/realisations",
+    url: "https://soporisgroup.com/realisations",
     type: "website",
     images: [{ url: "/og-realisations.jpg", width: 1200, height: 630 }],
   },

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Nos Services Web & Design | Soporis Group",
   description:
     "UI/UX Design, Développement Web, SEO et Refonte de site. Découvrez nos solutions sur mesure pour votre transformation digitale.",
-  alternates: { canonical: "https://votre-domaine.com/services" },
+  alternates: { canonical: "https://soporisgroup.com/services" },
 };
 
 export default async function ServicesPage() {
@@ -24,7 +24,7 @@ export default async function ServicesPage() {
     provider: {
       "@type": "Organization",
       name: "Soporis Group",
-      url: "https://votre-domaine.com",
+      url: "https://soporisgroup.com",
     },
     hasOfferCatalog: {
       "@type": "OfferCatalog",

@@ -15,7 +15,16 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, User, Clock, LogOut } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  Lock,
+  User,
+  Clock,
+  LogOut,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 // Ajout de l'interface pour le user
 interface SignInFormProps {
@@ -36,6 +45,9 @@ export default function SignInForm({ user }: SignInFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const supabase = createBrowserSupabaseClient();
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showSignupConfirm, setShowSignupConfirm] = useState(false);
 
   // Fonction pour se déconnecter (si on est bloqué en mode 'user')
   const handleSignOut = async () => {
@@ -172,7 +184,7 @@ export default function SignInForm({ user }: SignInFormProps) {
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="votre@email.com"
+                      placeholder="contact@soporisgroup.com"
                       className="pl-10"
                       value={loginData.email}
                       onChange={(e) =>
@@ -188,14 +200,26 @@ export default function SignInForm({ user }: SignInFormProps) {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="login-password"
-                      type="password"
-                      className="pl-10"
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder="Votre mot de passe"
+                      className="pl-10 pr-10"
                       value={loginData.password}
                       onChange={(e) =>
                         setLoginData({ ...loginData, password: e.target.value })
                       }
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    >
+                      {showLoginPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
@@ -217,6 +241,7 @@ export default function SignInForm({ user }: SignInFormProps) {
                     <Input
                       id="signup-name"
                       type="text"
+                      placeholder="Votre nom complet"
                       className="pl-10"
                       value={signupData.name}
                       onChange={(e) =>
@@ -233,6 +258,7 @@ export default function SignInForm({ user }: SignInFormProps) {
                     <Input
                       id="signup-email"
                       type="email"
+                      placeholder="contact@soporisgroup.com"
                       className="pl-10"
                       value={signupData.email}
                       onChange={(e) =>
@@ -248,8 +274,9 @@ export default function SignInForm({ user }: SignInFormProps) {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-password"
-                      type="password"
-                      className="pl-10"
+                      type={showSignupPassword ? "text" : "password"}
+                      placeholder="Votre mot de passe"
+                      className="pl-10 pr-10"
                       value={signupData.password}
                       onChange={(e) =>
                         setSignupData({
@@ -259,16 +286,30 @@ export default function SignInForm({ user }: SignInFormProps) {
                       }
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                    >
+                      {showSignupPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirmer</Label>
+                  <Label htmlFor="signup-confirm">
+                    Confirmer le mot de passe
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-confirm"
-                      type="password"
-                      className="pl-10"
+                      type={showSignupConfirm ? "text" : "password"}
+                      placeholder="Confirmer votre mot de passe"
+                      className="pl-10 pr-10"
                       value={signupData.confirmPassword}
                       onChange={(e) =>
                         setSignupData({
@@ -278,6 +319,17 @@ export default function SignInForm({ user }: SignInFormProps) {
                       }
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowSignupConfirm(!showSignupConfirm)}
+                    >
+                      {showSignupConfirm ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>

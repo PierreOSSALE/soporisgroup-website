@@ -38,13 +38,10 @@ export const userSchema = z.object({
 /* ================= EDIT ================= */
 
 export const editUserSchema = z.object({
-  id: z.string(),
-  name: z.string().min(2),
-  email: z.string().email(),
-
-  phone: z.string().optional(),
-  image: z.string().url().optional(),
-
+  id: z.string().min(1, "L'ID est requis"),
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Email invalide"),
+  image: z.string().url("URL invalide").optional().nullable().or(z.literal("")),
   role: z.enum(["user", "assistant", "admin"]),
   isActive: z.boolean(),
 });

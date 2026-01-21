@@ -14,6 +14,7 @@ import {
   incrementBlogPostViews,
 } from "@/lib/actions/blog.actions";
 import { getCommentsByPostId } from "@/lib/actions/comment.actions";
+import Image from "next/image";
 
 interface BlogDetailPageProps {
   params: Promise<{
@@ -79,7 +80,7 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
 
       {/* Hero Image */}
       <div className="max-w-5xl mx-auto px-4 mb-12">
-        <img
+        <Image
           src={post.image}
           alt={post.title}
           className="w-full aspect-2/1 object-cover rounded-2xl"

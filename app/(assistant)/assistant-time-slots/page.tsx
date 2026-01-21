@@ -62,7 +62,7 @@ import { cn } from "@/lib/utils";
 const setCookie = (name: string, value: string, days: number = 30) => {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   document.cookie = `${name}=${encodeURIComponent(
-    value
+    value,
   )};expires=${expires};path=/`;
 };
 
@@ -124,7 +124,7 @@ export default function TimeSlotsPage() {
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
   const [blockedDateToDelete, setBlockedDateToDelete] = useState<string | null>(
-    null
+    null,
   );
 
   // New slot form
@@ -326,7 +326,7 @@ export default function TimeSlotsPage() {
     try {
       await addBlockedDate(
         format(selectedDate, "yyyy-MM-dd"),
-        blockedDateReason || undefined
+        blockedDateReason || undefined,
       );
       setIsAddBlockedDateDialogOpen(false);
       setSelectedDate(undefined);
@@ -386,7 +386,7 @@ export default function TimeSlotsPage() {
     const csvContent = [
       headers.join(";"),
       ...rows.map((row) =>
-        row.map((cell) => `"${cell.toString().replace(/"/g, '""')}"`).join(";")
+        row.map((cell) => `"${cell.toString().replace(/"/g, '""')}"`).join(";"),
       ),
     ].join("\n");
 
@@ -424,7 +424,7 @@ export default function TimeSlotsPage() {
     const csvContent = [
       headers.join(";"),
       ...rows.map((row) =>
-        row.map((cell) => `"${cell.toString().replace(/"/g, '""')}"`).join(";")
+        row.map((cell) => `"${cell.toString().replace(/"/g, '""')}"`).join(";"),
       ),
     ].join("\n");
 
@@ -436,7 +436,7 @@ export default function TimeSlotsPage() {
     link.href = url;
     link.download = `horaires-ouverture_${format(
       new Date(),
-      "yyyy-MM-dd"
+      "yyyy-MM-dd",
     )}.csv`;
     document.body.appendChild(link);
     link.click();
@@ -513,7 +513,7 @@ export default function TimeSlotsPage() {
                         ...new Set(
                           timeSlots
                             .filter((s) => s.is_active)
-                            .map((s) => s.day_of_week)
+                            .map((s) => s.day_of_week),
                         ),
                       ].length
                     )}
@@ -556,8 +556,8 @@ export default function TimeSlotsPage() {
                       `${Math.round(
                         timeSlots.reduce(
                           (sum, s) => sum + s.duration_minutes,
-                          0
-                        ) / timeSlots.length
+                          0,
+                        ) / timeSlots.length,
                       )} min`
                     ) : (
                       "0 min"
@@ -572,7 +572,7 @@ export default function TimeSlotsPage() {
 
         {/* Actions principales */}
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Button onClick={() => setIsAddSlotDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Ajouter un créneau
@@ -787,7 +787,7 @@ export default function TimeSlotsPage() {
                         {format(
                           new Date(blockedDate.date),
                           "EEEE d MMMM yyyy",
-                          { locale: fr }
+                          { locale: fr },
                         )}
                       </p>
                       {blockedDate.reason && (
@@ -844,7 +844,7 @@ export default function TimeSlotsPage() {
                         "text-sm",
                         item.hours === "Fermé"
                           ? "text-muted-foreground"
-                          : "text-foreground"
+                          : "text-foreground",
                       )}
                     >
                       {item.hours}

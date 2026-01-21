@@ -17,6 +17,8 @@ import {
   LogOut,
   ChevronLeft,
   X,
+  MessageSquare,
+  User, // Ajouté
 } from "lucide-react";
 import { Route } from "next";
 import { useAuth } from "@/lib/auth/provider";
@@ -32,8 +34,10 @@ export interface AdminSidebarProps {
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: FolderKanban, label: "Projets", href: "/admin-projects" },
+  { icon: User, label: "Utilisateurs", href: "/admin-users" },
   { icon: Wrench, label: "Services", href: "/admin-services" },
   { icon: FileText, label: "Blog", href: "/admin-blog" },
+  { icon: MessageSquare, label: "Commentaires", href: "/admin-comments" }, // Nouveau
   { icon: Package, label: "Packs", href: "/admin-packs" },
   { icon: Star, label: "Témoignages", href: "/admin-testimonials" },
 ];
@@ -86,7 +90,7 @@ export default function AdminSidebar({
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 h-screen bg-card border-r border-border transition-all duration-300 hidden md:block",
-        sidebarOpen ? "w-64" : "w-20"
+        sidebarOpen ? "w-64" : "w-20",
       )}
     >
       <div className="flex h-16 items-center justify-between px-4 border-b border-border">
@@ -126,7 +130,7 @@ export default function AdminSidebar({
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
               isActive(item.href)
                 ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <item.icon className="h-5 w-5 shrink-0" />
@@ -158,14 +162,14 @@ export default function AdminSidebar({
     <div
       className={cn(
         "fixed inset-0 z-50 md:hidden flex",
-        mobileOpen ? "pointer-events-auto" : "pointer-events-none"
+        mobileOpen ? "pointer-events-auto" : "pointer-events-none",
       )}
     >
       {/* Backdrop sombre */}
       <div
         className={cn(
           "absolute inset-0 bg-black/40 transition-opacity",
-          mobileOpen ? "opacity-100" : "opacity-0"
+          mobileOpen ? "opacity-100" : "opacity-0",
         )}
         onClick={() => setMobileOpen(false)}
       />
@@ -174,7 +178,7 @@ export default function AdminSidebar({
       <div
         className={cn(
           "relative z-10 h-full w-64 max-w-full transform bg-card border-r border-border transition-transform duration-300",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex h-16 items-center justify-between px-4 border-b border-border">
@@ -208,7 +212,7 @@ export default function AdminSidebar({
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive(item.href)
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
               onClick={() => setMobileOpen(false)}
             >
