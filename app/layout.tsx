@@ -23,8 +23,30 @@ export const metadata: Metadata = {
   description: "Agence digitale experte en création de sites web.",
   metadataBase: new URL("https://soporisgroup.com"),
   icons: {
-    icon: "favicon.ico",
-    apple: "favicon.ico",
+    icon: [
+      { url: "/favicon.ico" }, // Le fichier physique que vous allez ajouter
+      {
+        url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768963578/favicon_i6bx5v.png",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "icon",
+        url: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        rel: "icon",
+        url: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
   },
 };
 
