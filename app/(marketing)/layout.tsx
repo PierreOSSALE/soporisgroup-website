@@ -18,9 +18,8 @@ export const metadata: Metadata = {
   description:
     "Agence digitale experte en création de sites web performants, design UI/UX et développement sur mesure (Next.js/React). Transformez votre présence en ligne.",
   icons: {
-    icon: "https://res.cloudinary.com/db8hwgart/image/upload/v1768963578/favicon_i6bx5v.png",
-    apple:
-      "https://res.cloudinary.com/db8hwgart/image/upload/v1768963578/favicon_i6bx5v.png",
+    icon: "favicon.ico",
+    apple: "favicon.ico",
   },
   keywords: [
     "agence web 3.0",
