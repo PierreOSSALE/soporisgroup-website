@@ -74,7 +74,7 @@ export function Packs({
 
   if (isLoading) {
     return (
-      <section className={`py-24 w-full lg:px-30 ${className}`}>
+      <section className={`py-24 w-full xl:px-30 ${className}`}>
         <div className={`container mx-auto px-4 ${margin || ""}`}>
           <div className="h-12 bg-gray-200 rounded-lg w-64 mx-auto mb-16 animate-pulse" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -91,7 +91,7 @@ export function Packs({
   }
 
   return (
-    <section className={`py-24 w-full lg:px-30 ${className}`}>
+    <section className={`py-24 w-full xl:px-30 ${className}`}>
       <div className={`container mx-auto px-4 ${margin || ""}`}>
         {/* Header & Currency Switcher */}
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
@@ -207,7 +207,7 @@ export function Packs({
                     </Link>
                     <Link
                       href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                        `Bonjour, je suis intéressé par le pack ${pack.name} (${priceData.current} ${priceData.symbol}).`
+                        `Bonjour, je suis intéressé par le pack ${pack.name} (${priceData.current} ${priceData.symbol}).`,
                       )}`}
                       target="_blank"
                       className="block"

@@ -14,7 +14,7 @@ export async function Testimonials() {
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
-    <section className="py-24 bg-background w-full lg:px-30">
+    <section className="py-24 bg-background w-full xl:px-30">
       <div className="container mx-auto px-4">
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary mb-4">

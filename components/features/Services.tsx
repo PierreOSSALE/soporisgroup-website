@@ -35,7 +35,7 @@ export function Services({
   };
 
   return (
-    <section className={`py-24 w-full lg:px-30 ${className}`}>
+    <section className={`py-24 w-full xl:px-30 ${className}`}>
       <div className={`container mx-auto px-4 ${margin || ""}`}>
         <header className="text-center max-w-2xl mx-auto mb-16">
           <AnimatedSection>

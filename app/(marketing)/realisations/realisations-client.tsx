@@ -36,7 +36,7 @@ export default function RealisationsClient({ projects }: Props) {
   // Catégories
   const categories = useMemo(
     () => ["Tout", ...Array.from(new Set(projects.map((p) => p.category)))],
-    [projects]
+    [projects],
   );
 
   // Filtrage par catégorie
@@ -122,7 +122,7 @@ export default function RealisationsClient({ projects }: Props) {
 
       {/* Grille de projets - Sémantique <section> */}
       <section
-        className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full pb-12 px-8 lg:px-30"
+        className="grid sm:grid-cols-2 xl:grid-cols-3 gap-8 w-full pb-12 px-8 xl:px-30"
         aria-label={`Liste des projets ${activeCategory}`}
       >
         {isLoading ? (

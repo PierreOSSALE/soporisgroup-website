@@ -11,7 +11,7 @@ const highlights = ["UI/UX Design", "Développement Web", "Performance & SEO"];
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden w-full lg:px-30">
+    <section className="relative  flex items-center overflow-hidden w-full xl:px-30">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <Image src={heroBg} alt="" className="w-full h-full object-cover" />

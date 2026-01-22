@@ -66,7 +66,7 @@ const steps = [
 
 export function Contact({ className = "" }: ContactProps) {
   return (
-    <section className={`py-24 w-full lg:px-30 overflow-hidden ${className}`}>
+    <section className={`py-24 w-full xl:px-30 overflow-hidden ${className}`}>
       <div className="container mx-auto px-4 ">
         <div className="grid lg:grid-cols-2 gap-8 xl:gap-16 items-start">
           {/* Left Side - Contact Info */}

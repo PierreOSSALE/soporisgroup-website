@@ -17,7 +17,7 @@ const stats = [
 
 export function About() {
   return (
-    <section className="py-24 bg-background w-full lg:px-30">
+    <section className="py-24 bg-background w-full xl:px-30">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Content */}

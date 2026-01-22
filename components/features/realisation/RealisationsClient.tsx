@@ -33,7 +33,7 @@ export function RealisationsClient({ projects, categories }: Props) {
       : projects.filter((p) => p.category === activeCategory);
 
   return (
-    <section className="py-24 bg-background w-full px-4 lg:px-30">
+    <section className="py-24 bg-background w-full px-4 xl:px-30">
       <div className="container mx-auto">
         {/* Header */}
         <AnimatedSection className="text-center max-w-2xl mx-auto mb-12">
