@@ -1,0 +1,13 @@
+
+📊 RAPPORT DE CONVERSION D'IMAGES
+=================================
+📁 Dossier: ./public
+📊 Total fichiers: 25
+🖼️  Images WebP: 11
+🖼️  Images JPG: 2
+🖼️  Images PNG: 9
+📄 Autres fichiers: 3
+
+💾 Économies estimées:
+   - JPG → WebP: ~25-35% de réduction
+   - PNG → WebP: ~80-90% de réduction
