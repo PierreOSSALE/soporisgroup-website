@@ -1,4 +1,6 @@
 // components/blog/AuthorInfo.tsx
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
+
 interface AuthorInfoProps {
   author: {
     name: string;
@@ -16,10 +18,13 @@ const AuthorInfo = ({
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
       {showAvatar && (
-        <img
+        <OptimizedImage
           src={author.avatar}
           alt={author.name}
-          className="w-6 h-6 rounded-full object-cover"
+          width={24}
+          height={24}
+          isAvatar
+          className="w-6 h-6 rounded-full"
         />
       )}
       <span className="font-medium text-foreground">{author.name}</span>

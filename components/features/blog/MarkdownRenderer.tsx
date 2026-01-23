@@ -5,6 +5,7 @@ import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 interface MarkdownRendererProps {
   content: string;
@@ -278,11 +279,13 @@ const MarkdownRenderer = ({
       );
     },
     img: ({ node, ...props }: any) => (
-      <div className="my-8">
-        <img
+      <div className="my-8 relative aspect-video">
+        <OptimizedImage
+          src={props.src}
+          alt={props.alt || "Image"}
+          fill
           className="w-full h-auto rounded-lg shadow-lg"
-          loading="lazy"
-          {...props}
+          sizes="(max-width: 768px) 100vw, 75vw"
         />
         {props.alt && (
           <p className="text-center text-sm text-muted-foreground mt-2">

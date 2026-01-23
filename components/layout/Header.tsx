@@ -72,7 +72,7 @@ export default function Header() {
     if (theme === "system") {
       // Vérifier la préférence système
       const systemPrefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       return systemPrefersDark ? logoDark : logoLight;
     }

@@ -3,12 +3,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "@/components/animations/AnimatedSection";
 import { Route } from "next";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 type Project = {
   id: string;
@@ -66,10 +66,7 @@ export function RealisationsClient({ projects, categories }: Props) {
         </AnimatedSection> */}
 
         {/* Grid */}
-        <motion.div
-          layout
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 "
-        >
+        <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
             {filteredProjects.slice(0, 3).map((project) => (
               <motion.div
@@ -83,21 +80,23 @@ export function RealisationsClient({ projects, categories }: Props) {
                   href={`/realisations/${project.slug}` as Route}
                   className="group block bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card transition"
                 >
-                  <div className="relative group aspect-4/3 ">
-                    <Image
-                      src={project.imageUrl || "/placeholder.jpg"}
-                      alt={project.title}
-                      fill
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
+                  <div className="relative group aspect-4/3">
+                    {project.imageUrl && (
+                      <OptimizedImage
+                        src={project.imageUrl}
+                        alt={project.title}
+                        fill
+                        className="transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    )}
                     <div className="absolute h-full inset-0 bg-primary/0 group-hover:bg-primary/60 transition-all duration-300 flex items-center justify-center">
                       <ExternalLink className="h-10 w-10 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                   </div>
 
                   <div className="p-5">
-                    <span className="text-xs text-soporis-gold uppercase ">
+                    <span className="text-xs text-soporis-gold uppercase">
                       {project.category}
                     </span>
                     <h3 className="font-display font-semibold text-primary mt-1">

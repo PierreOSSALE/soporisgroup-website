@@ -17,7 +17,7 @@ export async function proxy(request: NextRequest) {
           });
         },
       },
-    }
+    },
   );
 
   const {
@@ -45,7 +45,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     if (role === "assistant")
       return NextResponse.redirect(
-        new URL("/assistant-dashboard", request.url)
+        new URL("/assistant-dashboard", request.url),
       );
 
     // Si role === "user", on retourne response (PAS de redirect)

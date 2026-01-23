@@ -6,9 +6,9 @@ import {
   StaggerItem,
 } from "@/components/animations/AnimatedSection";
 import { getActiveTestimonials } from "@/lib/actions/testimonial.actions";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export async function Testimonials() {
-  // Récupération des données depuis la DB
   const testimonials = await getActiveTestimonials();
 
   if (!testimonials || testimonials.length === 0) return null;
@@ -31,7 +31,6 @@ export async function Testimonials() {
           {testimonials.map((testimonial) => (
             <StaggerItem key={testimonial.id}>
               <div className="bg-card rounded-2xl p-8 border border-border hover:shadow-card transition-all duration-300 h-full flex flex-col">
-                {/* Rating */}
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: testimonial.rating }).map((_, i) => (
                     <Star
@@ -41,7 +40,6 @@ export async function Testimonials() {
                   ))}
                 </div>
 
-                {/* Quote */}
                 <div className="relative mb-6 grow">
                   <Quote className="absolute -top-2 -left-2 h-8 w-8 text-soporis-gold/20" />
                   <p className="text-foreground pl-6 italic">
@@ -49,13 +47,15 @@ export async function Testimonials() {
                   </p>
                 </div>
 
-                {/* Author */}
                 <div className="flex items-center gap-4 mt-auto">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20">
                     {testimonial.avatar ? (
-                      <img
+                      <OptimizedImage
                         src={testimonial.avatar}
                         alt={testimonial.author}
+                        width={48}
+                        height={48}
+                        isAvatar
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -65,9 +65,9 @@ export async function Testimonials() {
                     )}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-primary">
                       {testimonial.author}
-                    </h4>
+                    </h3>
                     <p className="text-sm text-muted-foreground">
                       {testimonial.role}, {testimonial.company}
                     </p>

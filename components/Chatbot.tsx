@@ -6,6 +6,8 @@ import { BsWhatsapp } from "react-icons/bs"; // On réutilise l'icône WhatsApp
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
+import heroBg from "@/public/img/hero-bg.jpg";
+import { OptimizedImage } from "./ui/OptimizedImage";
 
 // --- CONSTANTES WHATSAPP ---
 const WHATSAPP_NUMBER = "+21626315088";
@@ -124,7 +126,7 @@ export function Chatbot() {
 
   const openWhatsApp = () => {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-      WHATSAPP_MESSAGE
+      WHATSAPP_MESSAGE,
     )}`;
     window.open(url, "_blank");
   };
@@ -163,9 +165,12 @@ export function Chatbot() {
         aria-label="Ouvrir le chat"
       >
         <Avatar className="w-14 h-14 border-2 border-primary cursor-pointer">
-          <AvatarImage
-            src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
+          <OptimizedImage
+            src="https://res.cloudinary.com/db8hwgart/image/upload/f_auto,q_auto:best,w_48,h_48,c_fill,g_face/v1750759236/black-woman-7093911_1280_qn786k.jpg"
             alt="Support Avatar"
+            width={48}
+            height={48}
+            isAvatar
             className="object-cover"
           />
           <AvatarFallback className="bg-secondary">
@@ -192,9 +197,12 @@ export function Chatbot() {
               <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                   <Avatar className="w-10 h-10 border-2 border-primary">
-                    <AvatarImage
-                      src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
+                    <OptimizedImage
+                      src="https://res.cloudinary.com/db8hwgart/image/upload/f_auto,q_auto:best,w_48,h_48,c_fill,g_face/v1750759236/black-woman-7093911_1280_qn786k.jpg"
                       alt="Support Avatar"
+                      width={48}
+                      height={48}
+                      isAvatar
                       className="object-cover"
                     />
                     <AvatarFallback className="bg-secondary">
@@ -223,11 +231,13 @@ export function Chatbot() {
               {/* Background FIXE */}
               <div className="absolute inset-0 z-0 pointer-events-none">
                 <Image
-                  src="/img/hero-bg.jpg"
-                  alt="Chat background"
-                  fill
-                  priority
+                  src={heroBg}
+                  alt=""
+                  priority // ⚠️ TRÈS IMPORTANT pour l'image LCP
+                  fill // Si c'est une image de fond
                   className="object-cover"
+                  sizes="100vw" // Ou "(max-width: 768px) 100vw, 75vw"
+                  quality={85} // Qualité suffisante
                 />
                 {/* Overlay pour lisibilité */}
                 {/* <div className="absolute inset-0 bg-card/80 backdrop-blur-sm" /> */}
@@ -248,9 +258,13 @@ export function Chatbot() {
                     <div className="w-8 h-8 shrink-0 flex items-center justify-center">
                       {message.isBot ? (
                         <Avatar className="w-8 h-8 border-2 border-primary">
-                          <AvatarImage
-                            src="https://res.cloudinary.com/db8hwgart/image/upload/v1750759236/black-woman-7093911_1280_qn786k.jpg"
+                          <OptimizedImage
+                            src="https://res.cloudinary.com/db8hwgart/image/upload/f_auto,q_auto:best,w_48,h_48,c_fill,g_face/v1750759236/black-woman-7093911_1280_qn786k.jpg"
                             alt="Support Avatar"
+                            width={48}
+                            height={48}
+                            isAvatar
+                            className="object-cover"
                           />
                           <AvatarFallback>
                             <User className="w-4 h-4" />

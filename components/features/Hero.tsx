@@ -1,3 +1,4 @@
+// components/features/Hero.tsx
 "use client";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,23 +6,30 @@ import { motion } from "framer-motion";
 import heroBg from "@/public/img/hero-bg.jpg";
 import Link from "next/link";
 import { Route } from "next";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 const highlights = ["UI/UX Design", "Développement Web", "Performance & SEO"];
 
 export function Hero() {
   return (
-    <section className="relative  flex items-center overflow-hidden w-full xl:px-30">
-      {/* Background Image with Overlay */}
+    <section className="relative flex items-center overflow-hidden w-full xl:px-30">
+      {/* Background Image avec priority */}
       <div className="absolute inset-0">
-        <Image src={heroBg} alt="" className="w-full h-full object-cover" />
+        <OptimizedImage
+          src={heroBg.src}
+          alt=""
+          fill
+          className="w-full h-full object-cover"
+          isHero
+          priority
+          quality={90}
+        />
         <div className="absolute inset-0 bg-linear-to-r from-primary/95 via-primary/85 to-primary/70" />
       </div>
 
-      {/* Content */}
+      {/* Contenu restant inchangé... */}
       <div className="relative z-10 container mx-auto px-4 pt-32 pb-20">
         <div className="max-w-3xl">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -34,7 +42,6 @@ export function Hero() {
             </span>
           </motion.div>
 
-          {/* Heading */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
