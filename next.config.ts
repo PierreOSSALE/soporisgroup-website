@@ -1,32 +1,71 @@
-// next.config.ts - OPTION AVEC LOADER DÉFAUT POUR IMAGES LOCALES
+// next.config.ts
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "*.googleusercontent.com" },
-      { protocol: "https", hostname: "**.googleapis.com" },
-      { protocol: "https", hostname: "**.supabase.co" },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/db8hwgart/**",
+      },
       {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
       {
         protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/db8hwgart/**",
+        hostname: "**.googleapis.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
       },
     ],
-
-    // ⚡ OPTIMISATIONS PERFORMANCE
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-
-    // Formats supportés
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
     formats: ["image/webp"],
+    dangerouslyAllowSVG: false,
   },
 
+  // Compression activée
+  compress: true,
+
+  // Optimisation des imports
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "@radix-ui/*"],
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "@radix-ui/*",
+      "@supabase/*",
+    ],
+  },
+
+  // Cache optimisation (modifier la syntaxe)
+  async headers() {
+    return [
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/_next/image/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+          {
+            key: "Vary",
+            value: "Accept",
+          },
+        ],
+      },
+    ];
   },
 
   typedRoutes: true,

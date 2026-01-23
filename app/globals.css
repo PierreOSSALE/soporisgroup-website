@@ -23,6 +23,7 @@
   --popover-foreground: 220 40% 13%;
 
   --primary: 220 45% 18%;
+  --primary: 220 50% 15%; /* Plus foncé */
   --primary-foreground: 210 40% 98%;
 
   --secondary: 210 30% 96%;
@@ -46,7 +47,7 @@
   /* Custom Soporis tokens */
   --soporis-navy: 220 45% 18%;
   --soporis-navy-light: 220 35% 30%;
-  --soporis-gold: 38 80% 55%;
+  --soporis-gold: 38 92% 45%; /* Plus foncé pour meilleur contraste */
   --soporis-gold-light: 40 75% 65%;
   --soporis-blue-accent: 210 60% 50%;
   --soporis-gray: 210 20% 94%;
@@ -86,8 +87,7 @@
   --secondary-foreground: 210 40% 98%;
 
   --muted: 220 35% 18%;
-  --muted-foreground: 215 20% 65%;
-
+  --muted-foreground: 215 25% 75%; /* Plus clair pour lisibilité */
   --accent: 38 80% 55%;
   --accent-foreground: 220 40% 13%;
 
@@ -97,7 +97,7 @@
   --border: 220 35% 20%;
   --input: 220 35% 20%;
   --ring: 212 26% 83%;
-
+  --soporis-gold: 38 92% 55%; /* Plus clair en mode sombre */
   /* Sidebar variables (dark mode) */
   --sidebar-background: 240 5.9% 10%;
   --sidebar-foreground: 240 4.8% 95.9%;
@@ -471,4 +471,50 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--soporis-gold-light));
+}
+
+/* app/critical.css - CSS minimal pour le rendu initial */
+.lcp-container {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.lcp-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-container {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 80rem;
+  z-index: 100;
+}
+
+/* Styles critiques pour le Hero */
+.text-gradient-gold {
+  background: linear-gradient(135deg, hsl(38 80% 55%) 0%, hsl(42 85% 60%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Reset minimal */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
 }

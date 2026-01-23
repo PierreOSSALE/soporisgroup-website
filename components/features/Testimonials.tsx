@@ -65,7 +65,7 @@ export async function Testimonials() {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-primary text-lg">
                       {testimonial.author}
                     </h3>
                     <p className="text-sm text-muted-foreground">

@@ -20,14 +20,11 @@ export function Hero() {
           alt="Arrière-plan hero"
           fill
           priority
+          fetchPriority="high"
           quality={85}
           className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
-          // Dimensions réduites pour l'affichage réel
-          style={{
-            objectPosition: "center",
-            // Les dimensions réelles de l'image sont maintenant correctes
-          }}
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1536px) 80vw, 1920px"
+          // Le load="eager" est automatique avec priority
         />
         <div className="absolute inset-0 bg-linear-to-r from-primary/95 via-primary/85 to-primary/70" />
       </div>
