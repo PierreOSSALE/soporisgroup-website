@@ -14,10 +14,7 @@
     "convert-images:img": "tsx scripts/convert-images.ts ./public/img",
     "convert-images:delete": "tsx scripts/convert-images.ts ./public --delete",
     "optimize-images": "pnpm convert-images && pnpm optimize-svgs",
-    "optimize-svgs": "svgo -f ./public --recursive",
-    "build:optimized": "NEXT_OPTIMIZE_FONTS=1 NEXT_OPTIMIZE_IMAGES=1 next build",
-    "analyze": "ANALYZE=true next build",
-    "export": "next build && next export"
+    "optimize-svgs": "svgo -f ./public --recursive"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
