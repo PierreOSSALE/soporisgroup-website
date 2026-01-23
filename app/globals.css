@@ -46,7 +46,8 @@
   /* Custom Soporis tokens */
   --soporis-navy: 220 45% 18%;
   --soporis-navy-light: 220 35% 30%;
-  --soporis-gold: 38 80% 55%;
+  --soporis-gold: 38 80% 55%; /* accent / icônes / hover */
+  --soporis-gold-text: 38 65% 38%; /* ✅ texte lisible */
   --soporis-gold-light: 40 75% 65%;
   --soporis-blue-accent: 210 60% 50%;
   --soporis-gray: 210 20% 94%;
@@ -139,6 +140,7 @@
   --color-soporis-white: hsl(var(--soporis-white));
   --color-soporis-navy-light: hsl(var(--soporis-navy-light));
   --color-soporis-gold: hsl(var(--soporis-gold));
+  --color-soporis-gold-text: hsl(var(--soporis-gold-text));
   --color-soporis-gold-light: hsl(var(--soporis-gold-light));
   --color-soporis-blue-accent: hsl(var(--soporis-blue-accent));
   --color-soporis-gray: hsl(var(--soporis-gray));

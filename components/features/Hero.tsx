@@ -80,7 +80,7 @@ export function Hero() {
                 transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
                 className="flex items-center gap-2 text-primary-foreground/90"
               >
-                <CheckCircle2 className="h-5 w-5 text-soporis-gold" />
+                <CheckCircle2 className="h-5 w-5 text-soporis-gold-text" />
                 <span className="text-sm font-medium">{item}</span>
               </motion.div>
             ))}

@@ -154,7 +154,7 @@ export default function RealisationsClient({ projects }: Props) {
                   </div>
                 </div>
                 <div className="p-6 grow">
-                  <span className="text-xs font-bold text-soporis-gold uppercase tracking-widest">
+                  <span className="text-xs font-bold text-soporis-gold-text uppercase tracking-widest">
                     {project.category}
                   </span>
                   <h2 className="font-display text-xl font-semibold text-primary mt-2 mb-3">
