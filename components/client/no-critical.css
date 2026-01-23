@@ -1,0 +1,9 @@
+/* styles/non-critical.css */
+/* y déplacer les imports lourds / animations */
+@import "tw-animate-css";
+
+/* autres styles non-critiques (animations globales, utilitaires) */
+/* exemple : */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}

@@ -28,6 +28,13 @@
       "sharp"
     ]
   },
+  "browserslist": [
+    "last 2 chrome versions",
+    "last 2 firefox versions",
+    "last 2 safari versions",
+    "edge >= 90",
+    "not dead"
+  ],
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@dnd-kit/core": "^6.3.1",
@@ -132,6 +139,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^16.1.4",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/bcrypt": "^6.0.0",

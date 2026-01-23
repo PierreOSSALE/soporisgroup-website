@@ -1,12 +1,9 @@
 // app/(marketing)/layout.tsx
+import dynamic from "next/dynamic";
 import { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Chatbot } from "@/components/Chatbot";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
+import MarketingClientLayout from "./MarketingClientLayout";
 
 // Métadonnées SEO optimisées pour un large reach
 export const metadata: Metadata = {
@@ -17,7 +14,6 @@ export const metadata: Metadata = {
   },
   description:
     "Agence digitale experte en création de sites web performants, design UI/UX et développement sur mesure (Next.js/React). Transformez votre présence en ligne.",
-
   keywords: [
     "agence web 3.0",
     "développement Next.js",
@@ -43,11 +39,7 @@ export const metadata: Metadata = {
   ],
   creator: "Soporis Group",
   publisher: "Soporis Group",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
+  formatDetection: { email: false, address: false, telephone: false },
   metadataBase: new URL("https://soporisgroup.com"),
   openGraph: {
     type: "website",
@@ -59,7 +51,8 @@ export const metadata: Metadata = {
     siteName: "Soporis Group",
     images: [
       {
-        url: "/og-image.jpg",
+        // URL ABSOLUE recommandée
+        url: "https://soporisgroup.com/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Soporis Group - Agence Web & UI/UX",
@@ -71,7 +64,7 @@ export const metadata: Metadata = {
     title: "Soporis Group - Agence Web & UI/UX à Tunis et Paris",
     description:
       "Solutions Web et UI/UX pour transformer vos idées en expériences digitales performantes",
-    images: ["/twitter-image.jpg"],
+    images: ["https://soporisgroup.com/twitter-image.jpg"],
     creator: "@soporisgroup",
   },
   robots: {
@@ -85,14 +78,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "",
-    yandex: "",
-    yahoo: "",
-  },
 };
 
-// Schema.org JSON-LD pour SEO local et business
+// JSON-LD inchangé (tu peux le laisser)
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
@@ -133,7 +121,6 @@ const jsonLd = {
     "https://twitter.com/soporisgroup",
     "https://www.instagram.com/soporisgroup",
   ],
-  // C'EST ICI QU'ON DIT QU'ON TRAVAILLE AVEC PARIS
   areaServed: [
     {
       "@type": "City",
@@ -145,39 +132,24 @@ const jsonLd = {
       name: "Paris",
       "@id": "https://fr.wikipedia.org/wiki/Paris",
     },
-    {
-      "@type": "Country",
-      name: "France",
-    },
+    { "@type": "Country", name: "France" },
   ],
   makesOffer: [
     {
       "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: "Création de site web",
-      },
+      itemOffered: { "@type": "Service", name: "Création de site web" },
     },
     {
       "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: "Design UI/UX",
-      },
+      itemOffered: { "@type": "Service", name: "Design UI/UX" },
     },
     {
       "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: "Développement Next.js",
-      },
+      itemOffered: { "@type": "Service", name: "Développement Next.js" },
     },
     {
       "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: "SEO & Marketing Digital",
-      },
+      itemOffered: { "@type": "Service", name: "SEO & Marketing Digital" },
     },
   ],
 };
@@ -191,19 +163,25 @@ export default function MarketingLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <TooltipProvider>
-        <Header />
+      {/* Preconnects utiles — réduit latence Cloudinary / Google Fonts */}
+      <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
+      <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+        crossOrigin=""
+      />
+      <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+
+      <Header />
+
+      <MarketingClientLayout>
         <main>{children}</main>
-        <Chatbot />
-        <Footer />
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
+      </MarketingClientLayout>
+
+      <Footer />
     </>
   );
 }

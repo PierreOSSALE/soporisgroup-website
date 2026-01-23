@@ -233,12 +233,13 @@ export function Chatbot() {
                 <Image
                   src={heroBg}
                   alt=""
-                  priority // ⚠️ TRÈS IMPORTANT pour l'image LCP
-                  fill // Si c'est une image de fond
+                  fill
                   className="object-cover"
-                  sizes="100vw" // Ou "(max-width: 768px) 100vw, 75vw"
-                  quality={85} // Qualité suffisante
+                  sizes="100vw"
+                  quality={60} // on peut baisser qualité pour chat bg
+                  priority={false} // explicit
                 />
+
                 {/* Overlay pour lisibilité */}
                 {/* <div className="absolute inset-0 bg-card/80 backdrop-blur-sm" /> */}
               </div>
