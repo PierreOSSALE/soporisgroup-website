@@ -3,26 +3,31 @@
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import heroBg from "@/public/img/hero-bg.jpg";
+import heroBg from "@/public/img/hero-bg.webp";
 import Link from "next/link";
 import { Route } from "next";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import Image from "next/image"; // Utilisez le composant Image standard
 
 const highlights = ["UI/UX Design", "Développement Web", "Performance & SEO"];
 
 export function Hero() {
   return (
     <section className="relative flex items-center overflow-hidden w-full xl:px-30">
-      {/* Background Image avec priority */}
+      {/* Background Image optimisé */}
       <div className="absolute inset-0">
-        <OptimizedImage
-          src={heroBg.src}
-          alt=""
+        <Image
+          src={heroBg}
+          alt="Arrière-plan hero"
           fill
-          className="w-full h-full object-cover"
-          isHero
           priority
-          quality={90}
+          quality={85}
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+          // Dimensions réduites pour l'affichage réel
+          style={{
+            objectPosition: "center",
+            // Les dimensions réelles de l'image sont maintenant correctes
+          }}
         />
         <div className="absolute inset-0 bg-linear-to-r from-primary/95 via-primary/85 to-primary/70" />
       </div>
@@ -53,7 +58,6 @@ export function Hero() {
             performantes
           </motion.h1>
 
-          {/* Description */}
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -65,7 +69,6 @@ export function Hero() {
             clients. Votre vision, notre expertise.
           </motion.p>
 
-          {/* Highlights */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -86,7 +89,6 @@ export function Hero() {
             ))}
           </motion.div>
 
-          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -116,7 +118,6 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Decorative Elements */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-background to-transparent" />
     </section>
   );

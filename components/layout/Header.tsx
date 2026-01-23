@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,10 +9,12 @@ import { Route } from "next";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Image from "next/image";
 
-// Import des deux logos
-import logoLight from "@/public/img/logo-soporis-light.png";
-import logoDark from "@/public/img/logo-soporis-dark.jpg";
-import { useTheme } from "@/components/ThemeProvider";
+// Utilisez des URLs Cloudinary optimisées pour les logos
+const LOGOS = {
+  light:
+    "https://res.cloudinary.com/db8hwgart/image/upload/f_auto,q_auto,w_122,c_limit/v1769173362/logo-soporis-light_osucza.webp",
+  dark: "https://res.cloudinary.com/db8hwgart/image/upload/f_auto,q_auto,w_122,c_limit/v1769173361/logo-soporis-dark_nrtvxa.webp",
+};
 
 const navItems = [
   { name: "À propos", href: "/a-propos" },
@@ -28,16 +29,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const headerRef = useRef<HTMLDivElement | null>(null);
-  const shadowClass =
-    theme === "dark" ? "shadow-navbar-white" : "shadow-navbar";
-
-  // Éviter le flash de logo pendant l'hydratation
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,58 +51,42 @@ export default function Header() {
     }
 
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]);
 
-  // Déterminer quel logo utiliser
-  const getLogoToUse = () => {
-    if (!mounted) return logoLight; // Logo par défaut pendant le SSR
-
-    if (theme === "system") {
-      // Vérifier la préférence système
-      const systemPrefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      return systemPrefersDark ? logoDark : logoLight;
-    }
-
-    return theme === "dark" ? logoDark : logoLight;
-  };
-
-  const currentLogo = getLogoToUse();
-
   return (
     <header
       ref={headerRef}
-      className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl "
+      className="fixed z-100 top-5 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl"
     >
       <div
         className={`relative px-4 sm:px-6 lg:px-8
-    ${
-      scrolled || isMenuOpen
-        ? `bg-card/90 backdrop-blur-md ${shadowClass}`
-        : `bg-card ${shadowClass}`
-    }
-    ${isMenuOpen ? "rounded-t-2xl" : "rounded-full"}
-  `}
+          ${
+            scrolled || isMenuOpen
+              ? "bg-card/90 backdrop-blur-md shadow-lg"
+              : "bg-card shadow-lg"
+          }
+          ${isMenuOpen ? "rounded-t-2xl" : "rounded-full"}
+        `}
       >
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            {/* Logo pour le thème clair */}
+            {/* Logo optimisé avec dimensions exactes */}
             <Image
-              src={logoLight}
+              src={LOGOS.light}
               alt="Soporis Group"
+              width={61}
+              height={36}
               className="h-9 w-auto object-contain block dark:hidden"
               priority
             />
-
-            {/* Logo pour le thème sombre */}
             <Image
-              src={logoDark}
+              src={LOGOS.dark}
               alt="Soporis Group"
+              width={61}
+              height={36}
               className="h-9 w-auto object-contain hidden dark:block"
               priority
             />
@@ -173,7 +149,7 @@ export default function Header() {
 
       {/* MENU MOBILE */}
       {isMenuOpen && (
-        <nav className="lg:hidden absolute top-full left-0 w-full animate-in fade-in slide-in-from-top-2 duration-300  p-6 bg-card/95 backdrop-blur-xl shadow border-y border-border/50 rounded-b-2xl space-y-1">
+        <nav className="lg:hidden absolute top-full left-0 w-full animate-in fade-in slide-in-from-top-2 duration-300 p-6 bg-card/95 backdrop-blur-xl shadow border-y border-border/50 rounded-b-2xl space-y-1">
           {navItems.map((item) => (
             <Link
               key={item.name}

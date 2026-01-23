@@ -1,17 +1,12 @@
 "use client";
 
 import { Facebook, Instagram, Linkedin, Mail, Youtube } from "lucide-react";
-import logo from "@/public/img/logo-soporis-light.png";
+import logo from "@/public/img/logo-soporis-light.webp";
 import Link from "next/link";
 import Image from "next/image";
 import { Route } from "next";
 import { Separator } from "@/components/ui/separator";
-import {
-  IoLogoYoutube,
-  IoLogoFacebook,
-  IoLogoInstagram,
-  IoLogoLinkedin,
-} from "react-icons/io5";
+import { IoLogoYoutube, IoLogoFacebook } from "react-icons/io5";
 
 const navigation = [
   { name: "À propos", href: "/a-propos" },

@@ -31,20 +31,20 @@ export const metadata: Metadata = {
       },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon.webp", sizes: "180x180", type: "image/png" },
     ],
     other: [
       {
         rel: "icon",
-        url: "/icon-192.png",
+        url: "/icon-192.webp",
         sizes: "192x192",
-        type: "image/png",
+        type: "image/webp",
       },
       {
         rel: "icon",
-        url: "/icon-512.png",
+        url: "/icon-512.webp",
         sizes: "512x512",
-        type: "image/png",
+        type: "image/webp",
       },
     ],
   },

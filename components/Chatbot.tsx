@@ -6,7 +6,7 @@ import { BsWhatsapp } from "react-icons/bs"; // On réutilise l'icône WhatsApp
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
-import heroBg from "@/public/img/hero-bg.jpg";
+import heroBg from "@/public/img/hero-bg.webp";
 import { OptimizedImage } from "./ui/OptimizedImage";
 
 // --- CONSTANTES WHATSAPP ---
