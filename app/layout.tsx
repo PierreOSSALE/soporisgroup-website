@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -19,34 +18,18 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://soporisgroup.com"),
   title: "Soporis Group",
   description: "Agence digitale experte en création de sites web.",
-  metadataBase: new URL("https://soporisgroup.com"),
   icons: {
     icon: [
-      { url: "/favicon.ico" }, // Le fichier physique que vous allez ajouter
+      { url: "/favicon.ico" },
       {
         url: "https://res.cloudinary.com/db8hwgart/image/upload/v1768963578/favicon_i6bx5v.png",
         type: "image/png",
       },
     ],
-    apple: [
-      { url: "/apple-touch-icon.webp", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      {
-        rel: "icon",
-        url: "/icon-192.webp",
-        sizes: "192x192",
-        type: "image/webp",
-      },
-      {
-        rel: "icon",
-        url: "/icon-512.webp",
-        sizes: "512x512",
-        type: "image/webp",
-      },
-    ],
+    apple: [{ url: "/apple-touch-icon.webp", sizes: "180x180" }],
   },
 };
 

@@ -191,24 +191,18 @@ export default function MarketingLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd),
+        }}
       />
-      <link rel="canonical" href="https://soporisgroup.com" />
-      <meta name="geo.region" content="FR-75" />
-      <meta name="geo.placename" content="Paris" />
-      <meta name="geo.position" content="48.8566;2.3522" />
-      <meta name="ICBM" content="48.8566, 2.3522" />
+
       <TooltipProvider>
-        {/* SUPPRIMER le div flex-col parent */}
-        <div>
-          <Header />
-          <main>{children}</main>
-          {/* <WhatsAppButton /> */}
-          <Chatbot />
-          <Footer />
-          <Toaster />
-          <Sonner />
-        </div>
+        <Header />
+        <main>{children}</main>
+        <Chatbot />
+        <Footer />
+        <Toaster />
+        <Sonner />
       </TooltipProvider>
     </>
   );
