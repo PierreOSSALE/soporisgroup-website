@@ -106,7 +106,7 @@
     "lottie-web": "^5.13.0",
     "lucide-react": "^0.462.0",
     "luxon": "^3.7.1",
-    "next": "16.0.8",
+    "next": "16.0.10",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.6",
     "nodemailer": "^6.10.1",
